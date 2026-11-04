@@ -1,0 +1,61 @@
+@keyframes expand {
+  from {
+    transform: scale(0);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes fromDownAppear {
+  from {
+    transform: translateY(30px);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes appear {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes disappear {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes pulse {
+    0% {
+        opacity: 0.5;
+        transform: scale(0.95);
+        filter: blur(5px);
+    }
+
+    30% {
+        opacity: 0.75;
+        transform: scale(1);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(0.95);
+    }
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
