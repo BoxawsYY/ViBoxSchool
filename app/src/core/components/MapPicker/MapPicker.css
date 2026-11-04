@@ -1,0 +1,16 @@
+.location-picker-container {
+    width: 100%;
+    height: 100%;
+    border-radius: var(--lx-border-radius-m);
+    display: flex;
+    flex-direction: column;
+}
+
+.leaflet-container {
+    height: 100%;
+    width: 100%;
+}
+
+.leaflet-top, .leaflet-bottom {
+    display: none;
+}
