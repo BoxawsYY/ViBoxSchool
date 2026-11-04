@@ -1,0 +1,88 @@
+.lx-c-permissions.--with-role {
+    padding: 2rem;
+}
+
+.lx-c-permissions-type {
+    font-size: 10px;
+    font-weight: 500;
+    padding: 4px 8px;
+    border-radius: var(--lx-border-radius-full);
+    border: var(--lx-primary-border);
+    border-color: var(--lx-color-accent-dimed);
+    background: var(--lx-color-accent-dimed);
+    color: var(--lx-color-accent);
+}
+
+.lx-c-permissions-type.--read {
+    background: var(--lx-color-info-dimed);
+    color: var(--lx-color-info);
+    border-color: var(--lx-color-info-dimed);
+}
+
+.lx-c-permissions-type.--create {
+    background: var(--lx-color-success-dimed);
+    color: var(--lx-color-success);
+    border-color: var(--lx-color-success-dimed);
+}
+
+.lx-c-permissions-type.--update {
+    background: var(--lx-color-warning-dimed);
+    color: var(--lx-color-warning);
+    border-color: var(--lx-color-warning-dimed);
+}
+
+.lx-c-permissions-type.--delete {
+    background: var(--lx-color-danger-dimed);
+    color: var(--lx-color-danger);
+    border-color: var(--lx-color-danger-dimed);
+}
+
+.lx-c-permissions-type.--assign {
+    background: #00c3ff20;
+    color: #00c3ff;
+    border-color: #00c3ff20;
+}
+
+.lx-c-permissions-type.--check {
+    background: #dd00ff20;
+    color: #dd00ff;
+    border-color: #dd00ff20;
+}
+
+.lx-c-permissions-type.--revoke {
+    background: #ff880020;
+    color: #ff8800;
+    border-color: #ff880020;
+}
+
+.lx-c-permissions-icon.--read {
+    color: var(--lx-color-info);
+}
+
+.lx-c-permissions-icon.--create {
+    color: var(--lx-color-success);
+}
+
+.lx-c-permissions-icon.--update {
+    color: var(--lx-color-warning);
+}
+
+.lx-c-permissions-icon.--delete {
+    color: var(--lx-color-danger);
+}
+
+.lx-c-permissions-icon.--assign {
+    color: #00c3ff;
+}
+
+.lx-c-permissions-icon.--check {
+    color: #dd00ff;
+}
+
+.lx-c-permissions-icon.--revoke {
+    color: #ff8800;
+}
+
+.lx-c-permissions-icon.--access {
+    color: var(--lx-color-accent);
+}
