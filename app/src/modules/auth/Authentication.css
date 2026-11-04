@@ -1,0 +1,15 @@
+.lx-m-authentication {
+    width: 100%;
+    height: 100vh;
+    overflow: hidden;
+    background-color: var(--lx-color-background-special);
+    background-image: radial-gradient(var(--lx-color-background-secondary) 10%, transparent 10%);
+    background-size: 1rem 1rem;
+}
+
+.lx-m-authentication-mode {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    z-index: 100;
+}
