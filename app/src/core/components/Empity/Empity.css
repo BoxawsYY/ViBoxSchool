@@ -1,0 +1,23 @@
+.lx-c-empty {
+  width: 100%;
+  height: 100%;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.lx-c-empty span {
+  font-size: 100px;
+  margin-bottom: 20px;
+  background: var(--lx-background-gradient);
+  filter: grayscale(1);
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.lx-c-empty p {
+  color: var(--lx-color-text-softer);
+    user-select: none;
+}
