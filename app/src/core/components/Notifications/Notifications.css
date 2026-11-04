@@ -1,0 +1,8 @@
+.lx-c-notifications {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  z-index: 9999;
+}
