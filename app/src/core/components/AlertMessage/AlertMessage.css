@@ -1,0 +1,78 @@
+.lx-c-alert-message {
+    width: 100%;
+    border-radius: var(--lx-border-radius-s);
+    display: grid;
+    grid-template-columns: auto 1fr;
+    background: rgba(var(--lx-inverse), 0.05);
+    overflow: hidden;
+    user-select: none;
+}
+
+.lx-c-alert-message-message {
+    width: 100%;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: left;
+    font-size: var(--lx-font-size-m);
+    color: var(--lx-color-text-softer);
+}
+
+.lx-c-alert-message-message a:hover {
+    text-decoration: underline;
+}
+
+.lx-c-alert-message-icon {
+    width: 100%;
+    height: 100%;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.lx-c-alert-message-icon span {
+    font-size: 2rem;
+    line-height: 1;
+}
+
+.lx-c-alert-message.info .lx-c-alert-message-icon {
+    background: var(--lx-color-accent-dimed);
+    color: var(--lx-color-accent);
+}
+
+.lx-c-alert-message.warning .lx-c-alert-message-icon {
+    background: var(--lx-color-warning-dimed);
+    color: var(--lx-color-warning);
+}
+
+.lx-c-alert-message.error .lx-c-alert-message-icon {
+    background: var(--lx-color-danger-dimed);
+    color: var(--lx-color-danger);
+}
+
+.lx-c-alert-message.success .lx-c-alert-message-icon {
+    background: var(--lx-color-success-dimed);
+    color: var(--lx-color-success);
+}
+
+.lx-c-alert-message.error .lx-c-alert-message-message a {
+    color: var(--lx-color-danger);
+}
+
+.lx-c-alert-message.success .lx-c-alert-message-message a {
+    color: var(--lx-color-success);
+}
+
+.lx-c-alert-message.warning .lx-c-alert-message-message a {
+    color: var(--lx-color-warning);
+}
+
+.lx-c-alert-message.info .lx-c-alert-message-message a {
+    color: var(--lx-color-accent);
+}
+
+.lx-c-alert-message.min .lx-c-alert-message-icon {
+    padding: 10px;
+}
