@@ -1,0 +1,57 @@
+.lx-c-notification {
+  width: 100%;
+  max-width: 400px;
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(1rem);
+  padding: 1rem 1.5rem;
+  border-radius: var(--lx-border-radius-s);
+  font-size: 14px;
+  background: var(--lx-color-auto);
+  color: var(--lx-color-inverse);
+  opacity: 0;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: left;
+  gap: 1rem;
+  z-index: 1000;
+  pointer-events: none;
+}
+
+.lx-c-notification.--show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.lx-c-notification.--hide {
+  opacity: 0;
+  transform: translateX(-50%) translateY(1rem);
+}
+
+.lx-c-notification-indicator {
+    width: .5rem;
+    min-width: .5rem;
+    max-width: .5rem;
+    height: .5rem;
+    min-height: .5rem;
+    max-height: .5rem;
+    border-radius: var(--lx-border-radius-full);
+}
+
+.lx-c-notification-indicator.--success {
+  background-color: #22c55e;
+}
+
+.lx-c-notification-indicator.--error {
+  background-color: #ef4444;
+}
+
+.lx-c-notification-indicator.--info {
+  background-color: #3b82f6;
+}
+
+.lx-c-notification-indicator.--warning {
+  background-color: #f97316;
+}
