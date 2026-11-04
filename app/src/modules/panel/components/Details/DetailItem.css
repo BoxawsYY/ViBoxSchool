@@ -1,0 +1,31 @@
+.lx-c-detail-item {
+    display: flex;
+    flex-direction: column;
+    justify-content: left;
+    gap: .25rem;
+}
+
+.lx-c-detail-item-header {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: .25rem;
+    font-weight: 500;
+    color: var(--lx-color-text);
+    user-select: none;
+}
+
+
+.lx-c-detail-item-body {
+    color: var(--lx-color-text-softer);
+}
+
+.lx-c-detail-item a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.lx-c-detail-item a:hover {
+    color: var(--lx-color-auto);
+    text-decoration: underline;
+}
