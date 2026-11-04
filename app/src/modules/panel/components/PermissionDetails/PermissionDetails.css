@@ -1,0 +1,56 @@
+.lx-c-permission-details {
+  padding: var(--lx-padding-l);
+  color: var(--lx-color-text);
+}
+
+.lx-c-permission-details-title {
+  font-size: var(--lx-font-size-xl);
+  margin-bottom: var(--lx-space-l);
+  font-weight: 600;
+  color: var(--lx-color-text);
+}
+
+.lx-c-permission-details-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--lx-space-m);
+}
+
+.lx-c-permission-details-field {
+  display: flex;
+  flex-direction: column;
+  background: rgba(var(--lx-inverse), 0.03);
+  padding: var(--lx-padding-s);
+  border-radius: var(--lx-border-radius-s);
+  border: var(--lx-primary-border-transparent);
+}
+
+.lx-c-permission-details-label {
+  font-size: var(--lx-font-size-s);
+  color: var(--lx-color-text-soft);
+  margin-bottom: var(--lx-space-xxs);
+}
+
+.lx-c-permission-details-value {
+  font-size: var(--lx-font-size-m);
+  font-weight: 500;
+}
+
+.lx-c-permission-details-badge {
+  padding: 5px 10px;
+  border-radius: var(--lx-border-radius-xxs);
+  font-size: var(--lx-font-size-s);
+  width: fit-content;
+  color: var(--lx-color-white);
+  background: var(--lx-color-accent);
+}
+
+.lx-c-permission-details-badge-success {
+  background: var(--lx-color-success-dimed);
+  color: var(--lx-color-success);
+}
+
+.lx-c-permission-details-badge-danger {
+  background: var(--lx-color-danger-dimed);
+  color: var(--lx-color-danger);
+}
