@@ -1,0 +1,27 @@
+.lx-c-footer {
+    width: 100%;
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 3rem;
+    text-align: center;
+    font-size: 12px;
+    user-select: none;
+}
+
+.lx-c-footer p {
+    color: var(--lx-color-text-softer);
+}
+
+.lx-c-footer-nav a{
+    text-decoration: none;
+    color: var(--lx-color-text-softer);
+    padding: 10px;
+}
+
+.lx-c-footer-nav a:hover {
+    text-decoration: underline;
+}
+
+.lx-c-footer-nav a:first-child {
+    font-weight: bold;
+}
