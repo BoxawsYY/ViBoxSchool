@@ -1,0 +1,55 @@
+.lx-c-brand {
+    width: 100%;
+    display: grid;
+    place-items: center;
+}
+
+.lx-c-brand svg {
+    width: 80%;
+    height: -webkit-fill-available;
+}
+
+.lx-c-brand-size-xxxs {
+    max-width: var(--lx-brand-size-xxxs);
+    min-width: var(--lx-brand-size-xxxs);
+}
+
+.lx-c-brand-size-xxs {
+    max-width: var(--lx-brand-size-xxs);
+    min-width: var(--lx-brand-size-xxs);
+}
+
+.lx-c-brand-size-xs {
+    max-width: var(--lx-brand-size-xs);
+    min-width: var(--lx-brand-size-xs);
+}
+
+.lx-c-brand-size-s {
+    max-width: var(--lx-brand-size-s);
+    min-width: var(--lx-brand-size-s);
+}
+
+.lx-c-brand-size-m {
+    max-width: var(--lx-brand-size-m);
+    min-width: var(--lx-brand-size-m);
+}
+
+.lx-c-brand-size-l {
+    max-width: var(--lx-brand-size-l);
+    min-width: var(--lx-brand-size-l);
+}
+
+.lx-c-brand-size-xl {
+    max-width: var(--lx-brand-size-xl);
+    min-width: var(--lx-brand-size-xl);
+}
+
+.lx-c-brand-size-xxl {
+    max-width: var(--lx-brand-size-xxl);
+    min-width: var(--lx-brand-size-xxl);
+}
+
+.lx-c-brand-size-xxxl {
+    max-width: var(--lx-brand-size-xxxl);
+    min-width: var(--lx-brand-size-xxxl);
+}
