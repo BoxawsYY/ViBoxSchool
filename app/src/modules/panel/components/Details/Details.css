@@ -1,0 +1,9 @@
+.lx-c-details {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    padding: var(--lx-padding-s);
+    border-radius: var(--lx-border-radius-s);
+    background: rgba(var(--lx-inverse), 0.03);
+}
