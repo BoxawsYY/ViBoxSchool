@@ -1,0 +1,242 @@
+.lx-c-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.7));
+  backdrop-filter: blur(2px);
+  display: flex;
+  justify-content: center;
+  z-index: 999;
+  padding: 10px;
+  animation: appear 0.5s ease forwards;
+  overflow: hidden;
+}
+
+.lx-c-modal-container {
+  width: 100%;
+  max-height: 100%;
+  background: var(--lx-color-background-modal);
+  border-radius: var(--lx-border-radius-m);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: fromDownAppear 0.5s ease forwards;
+  box-shadow: rgba(0, 0, 0, 0.1) 0px 2px 1px 0px inset;
+}
+
+[data-theme="dark"] .lx-c-modal-container {
+  box-shadow: rgba(255, 255, 255, 0.1) 0px 1px 1px 0px inset;
+}
+
+.lx-c-modal.center {
+  align-items: center;
+}
+
+.lx-c-modal.left {
+  justify-content: left;
+}
+
+.lx-c-modal.right {
+  justify-content: right;
+}
+
+.lx-c-modal.min .lx-c-modal-container {
+  max-width: 400px;
+}
+
+.lx-c-modal.middle .lx-c-modal-container {
+  max-width: 500px;
+}
+
+.lx-c-modal.standar .lx-c-modal-container {
+  max-width: 600px;
+}
+
+.lx-c-modal.large .lx-c-modal-container {
+  max-width: 800px;
+}
+
+.lx-c-modal.max .lx-c-modal-container {
+  max-width: 1000px;
+}
+
+.lx-c-modal.full .lx-c-modal-container {
+  max-width: 100%;
+}
+
+.lx-c-modal.right .lx-c-modal-container {
+  animation: slideInRightToLeft 0.5s ease forwards;
+}
+
+.lx-c-modal.left .lx-c-modal-container {
+  animation: slideInLeftToRight 0.5s ease forwards;
+}
+
+.lx-c-modal-header {
+  width: 100%;
+  padding: 10px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  user-select: none;
+  border-bottom: var(--lx-primary-border);
+}
+
+.lx-c-modal-header h3 {
+  font-weight: 550;
+  font-size: 1.3rem;
+}
+
+.lx-c-modal-content {
+  width: 100%;
+  height: 100%;
+  font-size: 16px;
+  position: relative;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+@keyframes slideInRightToLeft {
+  0% {
+    transform: translateX(100%);
+  }
+
+  100% {
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInLeftToRight {
+  0% {
+    transform: translateX(-100%);
+  }
+
+  100% {
+    transform: translateX(0);
+  }
+}
+
+.lx-c-modal.--active {
+  animation: modalFadeIn 0.5s ease forwards;
+}
+
+.lx-c-modal.--inactive {
+  animation: modalFadeOut 0.5s ease forwards;
+  animation-delay: 0.3s;
+}
+
+.lx-c-modal.center .lx-c-modal-container {
+  animation: fromDownAppear 0.5s ease forwards;
+}
+
+.lx-c-modal.center.--inactive .lx-c-modal-container {
+  animation: fromDownDisappear 0.5s ease forwards;
+}
+
+.lx-c-modal.left .lx-c-modal-container {
+  animation: slideInLeftToRight 0.5s ease forwards;
+}
+
+.lx-c-modal.left.--inactive .lx-c-modal-container {
+  animation: slideOutLeftToRight 0.5s ease forwards;
+}
+
+.lx-c-modal.right .lx-c-modal-container {
+  animation: slideInRightToLeft 0.5s ease forwards;
+}
+
+.lx-c-modal.right.--inactive .lx-c-modal-container {
+  animation: slideOutRightToLeft 0.5s ease forwards;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modalFadeOut {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes slideInRightToLeft {
+  from {
+    transform: translateX(100%);
+  }
+
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideOutRightToLeft {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes slideInLeftToRight {
+  from {
+    transform: translateX(-100%);
+  }
+
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideOutLeftToRight {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+@keyframes fromDownAppear {
+  from {
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(40px);
+  }
+
+  to {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fromDownDisappear {
+  from {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+
+  to {
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(40px);
+  }
+}
