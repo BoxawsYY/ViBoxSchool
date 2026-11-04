@@ -1,0 +1,40 @@
+.lx-c-expandable {
+  width: 100%;
+}
+
+.lx-c-expandable-header {
+  width: 100%;
+  text-align: left;
+  padding: 1rem;
+  background: var(--lx-color-background-special);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  border: none;
+  outline: none;
+}
+
+.lx-c-expandable-summary {
+  color: var(--lx-color-text);
+  flex: 1;
+}
+
+.lx-c-expandable-icon {
+  width: 20px;
+  height: 20px;
+  transition: transform 0.18s ease;
+}
+
+.lx-c-expandable-icon.open {
+  transform: rotate(180deg);
+}
+
+.lx-c-expandable-content {
+  width: 100%;
+  display: block;
+}
+
+.lx-c-expandable-body {
+  width: 100%;
+}
