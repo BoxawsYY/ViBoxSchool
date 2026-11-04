@@ -1,0 +1,69 @@
+.lx-c-switch {
+  display: inline-block;
+  position: relative;
+  width: 42px;
+  height: 24px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transform: translate3d(0, 0, 0);
+}
+
+.lx-c-switch .lx-c-switch-toggle {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.lx-c-switch .lx-c-switch-toggle:before {
+  content: "";
+  position: absolute;
+  top: 2.5px;
+  left: 1px;
+  width: 40px;
+  height: 20px;
+  background: var(--lx-color-background-ternary);
+  border-radius: 12px;
+  transition: background 0.2s ease;
+}
+
+.lx-c-switch .lx-c-switch-toggle span {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 24px;
+  height: 24px;
+  background: #fff;
+  border-radius: var(--lx-border-radius-circle);
+  box-shadow: 0 2px 6px rgba(154, 153, 153, 0.75);
+  transition: all 0.2s ease;
+}
+
+.lx-c-switch .lx-c-switch-toggle span svg {
+  margin: 7px;
+  fill: none;
+}
+
+.lx-c-switch .lx-c-switch-toggle span svg path {
+  stroke: #dedede;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 24;
+  stroke-dashoffset: 0;
+  transition: all 0.5s linear;
+}
+
+.lx-c-switch.active .lx-c-switch-toggle:before {
+  background: var(--lx-color-success);
+}
+
+.lx-c-switch.active .lx-c-switch-toggle span {
+  transform: translateX(18px);
+}
+
+.lx-c-switch.active .lx-c-switch-toggle span svg path {
+  stroke: var(--lx-color-success);
+  stroke-dasharray: 25;
+  stroke-dashoffset: 25;
+}
