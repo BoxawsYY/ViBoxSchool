@@ -1,0 +1,161 @@
+.lx-c-role-card {
+    --lx-c-role-card-color: var(--lx-color-accent);
+    --lx-c-role-card-color-dimed: var(--lx-color-accent-dimed);
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background: var(--lx-color-background-primary);
+    border: var(--lx-primary-border);
+    border-radius: var(--lx-border-radius-m);
+    overflow: hidden;
+    position: relative;
+    user-select: none;
+    will-change: transform;
+    background-image: radial-gradient(var(--lx-color-background-secondary) 8%, transparent 8%);
+    background-size: 1rem 1rem;
+    animation: appear both;
+    animation-timeline: view();
+    animation-range: entry 20% cover 30%;
+}
+
+.lx-c-role-card.--inactive {
+    filter: grayscale(1);
+}
+
+.lx-c-role-card.--guest {
+    --lx-c-role-card-color: var(--lx-color-gray);
+    --lx-c-role-card-color-dimed: var(--lx-color-gray-dimed);
+}
+
+.lx-c-role-card.--user {
+    --lx-c-role-card-color: var(--lx-color-info);
+    --lx-c-role-card-color-dimed: var(--lx-color-info-dimed);
+}
+
+.lx-c-role-card.--admin {
+    --lx-c-role-card-color: var(--lx-color-success);
+    --lx-c-role-card-color-dimed: var(--lx-color-success-dimed);
+}
+
+.lx-c-role-card.--veterinarian {
+    --lx-c-role-card-color: var(--lx-color-danger);
+    --lx-c-role-card-color-dimed: var(--lx-color-danger-dimed);
+}
+
+.lx-c-role-card.--operator {
+    --lx-c-role-card-color: var(--lx-color-warning);
+    --lx-c-role-card-color-dimed: var(--lx-color-warning-dimed);
+}
+
+.lx-c-role-card-header { 
+    width: 100%;
+    height: 100px;
+    display: grid;
+    place-content: center;
+    padding: 1rem;
+    position: relative;
+    perspective: 500px;
+    perspective-origin: 50% 50%;
+}
+
+.lx-c-role-card-header::before {
+    content: '';
+    width: 200%;
+    height: 100%;
+    background: linear-gradient(var(--lx-c-role-card-color-dimed) 50%, transparent 0%);
+    background-size: 1rem 2rem;
+    position: absolute;
+    top: 0;
+    left: 0;
+    filter: blur(5px);
+    transform: rotateY(50deg) rotateX(25deg) translateX(-25%);
+    transition: transform 0.3s ease;
+}
+
+.lx-c-role-card-header-icon {
+    color: var(--lx-c-role-card-color);
+    transform: rotateY(25deg) rotateX(25deg);
+}
+
+.lx-c-role-card-header-switch {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+}
+
+.lx-c-role-card-content {
+    width: 100%;
+    height: 100%;
+    padding: 1rem;
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+}
+
+.lx-c-role-card-content-info {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+}
+
+.lx-c-role-card-content .head {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: .25rem;
+}
+
+.lx-c-role-card-content .--name {
+    width: fit-content;
+    background: var(--lx-c-role-card-color); 
+    color: var(--lx-color-white);
+    padding: 4px 8px; 
+    font-weight: 500; 
+    font-size: 12px; 
+    border-radius: 8px 8px 8px 0;
+}
+
+.lx-c-role-card-content .--alias {
+    font-size: 1.5rem;
+    font-weight: 600;
+    letter-spacing: -.25pt;
+}
+
+.lx-c-role-card-content .--description {
+    color: var(--lx-color-text-softest);
+}
+
+.lx-c-role-card-content .body {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    white-space: wrap;
+    gap: .5rem;
+}
+
+.lx-c-role-card-content .--tag {
+    width: fit-content;
+    padding: 4px 8px;
+    border-radius: var(--lx-border-radius-full);
+    background: rgba(var(--lx-inverse), 0.05);
+    font-size: 12px;
+    color: var(--lx-color-text-soft);
+    border: var(--lx-primary-border);
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+}
+
+.lx-c-role-card-content .footer {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: flex-end;
+    gap: 0.5rem;
+}
