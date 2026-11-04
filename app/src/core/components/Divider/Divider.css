@@ -1,0 +1,19 @@
+.lx-c-divider {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.lx-c-divider .--divider-line {
+    width: 100%;
+    height: 1px;
+    background: var(--lx-color-border);
+}
+
+.lx-c-divider .--divider-text {
+    padding: 0 var(--lx-padding-m);
+    font-size: var(--lx-font-size-m);
+    color: var(--lx-color-text-softest);
+    white-space: nowrap;
+}
