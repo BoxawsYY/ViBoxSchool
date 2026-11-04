@@ -1,0 +1,20 @@
+.lx-p-unauthorized {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    color: var(--lx-color-text);
+    text-align: center;
+}
+
+.lx-p-unauthorized-icon {
+    font-size: 100px;
+    margin-bottom: 20px;
+    background: var(--lx-background-gradient);
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.lx-p-unauthorized p {
+    color: var(--lx-color-text-softer);
+}
