@@ -1,0 +1,55 @@
+.lx-c-logo {
+    width: 100%;
+    display: grid;
+    place-items: center;
+}
+
+.lx-c-logo svg {
+    width: 80%;
+    height: -webkit-fill-available;
+}
+
+.lx-c-logo-size-xxxs {
+    max-width: var(--lx-logo-size-xxxs);
+    min-width: var(--lx-logo-size-xxxs);
+}
+
+.lx-c-logo-size-xxs {
+    max-width: var(--lx-logo-size-xxs);
+    min-width: var(--lx-logo-size-xxs);
+}
+
+.lx-c-logo-size-xs {
+    max-width: var(--lx-logo-size-xs);
+    min-width: var(--lx-logo-size-xs);
+}
+
+.lx-c-logo-size-s {
+    max-width: var(--lx-logo-size-s);
+    min-width: var(--lx-logo-size-s);
+}
+
+.lx-c-logo-size-m {
+    max-width: var(--lx-logo-size-m);
+    min-width: var(--lx-logo-size-m);
+}
+
+.lx-c-logo-size-l {
+    max-width: var(--lx-logo-size-l);
+    min-width: var(--lx-logo-size-l);
+}
+
+.lx-c-logo-size-xl {
+    max-width: var(--lx-logo-size-xl);
+    min-width: var(--lx-logo-size-xl);
+}
+
+.lx-c-logo-size-xxl {
+    max-width: var(--lx-logo-size-xxl);
+    min-width: var(--lx-logo-size-xxl);
+}
+
+.lx-c-logo-size-xxxl {
+    max-width: var(--lx-logo-size-xxxl);
+    min-width: var(--lx-logo-size-xxxl);
+}
