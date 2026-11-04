@@ -1,0 +1,36 @@
+export const FIELDS_TRANSLATION = {
+    id: 'ID',
+    name: 'Nombre',
+    username: 'Usuario',
+    price: 'Precio',
+    description: 'Descripción',
+    unit: 'Unidad',
+    type: 'Tipo',
+    value: 'Valor',
+    password: 'Contraseña',
+    email: 'Correo',
+    address: 'Dirección',
+    phone: 'Teléfono',
+    country: 'País',
+    type: 'Tipo',
+    categoryId: 'Categoría',
+    supplier_id: 'Proveedor',
+    product_id: 'Producto',
+    user_id: 'Usuario',
+    store_id: 'Tienda',
+    bar_code: 'Código de barras',
+    isActive: 'Activo',
+    document_type: 'Tipo',
+    document_number: 'Documento',
+    image: 'Imagen',
+}
+
+export const SUPPLIER_TRANSLATION = {
+    name: 'Nombre',
+    address: 'Dirección',
+    country: 'País',
+    phone: 'Teléfono',
+    email: 'Correo',
+    web: 'Web',
+    isActive: 'Estado'
+}
