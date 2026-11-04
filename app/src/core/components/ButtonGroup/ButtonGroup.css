@@ -1,0 +1,42 @@
+.lx-c-button-group {
+    width: 100%;
+    height: var(--lx-height-m);
+    max-width: fit-content;
+    display: flex;
+    gap: .25rem;
+    background: rgba(var(--lx-inverse), 0.05);
+    padding: var(--lx-padding-xxxs);
+    border-radius: var(--lx-border-radius-s);
+    backdrop-filter: blur(10px);
+}
+
+.lx-c-button-group-button {
+    width: 100%;
+    height: 100%;
+    white-space: nowrap;
+    border: none;
+    background: none;
+    outline: none;
+    color: rgba(var(--lx-inverse), 0.3);
+    font-size: 12px;
+    padding: var(--lx-padding-xxs) var(--lx-padding-s);
+    border-radius: var(--lx-border-radius-xs);
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .5rem;
+    user-select: none;
+}
+
+.lx-c-button-group-button.active {
+    background: var(--lx-color-button-group);
+    color: var(--lx-color-auto);
+    font-weight: 600;
+    /* box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1); */
+}
+
+.lx-c-button-group-button span {
+    font-size: 20px;
+}
