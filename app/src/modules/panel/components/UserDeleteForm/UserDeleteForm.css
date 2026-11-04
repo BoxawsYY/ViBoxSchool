@@ -1,0 +1,32 @@
+.lx-f-user-delete {
+    width: 100%;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    text-wrap: balance;
+    gap: 1rem;
+}
+
+.lx-f-user-delete .icon {
+    width: 100px;
+    height: 100px;
+    border-radius: 100%;
+    background: var(--lx-color-danger-dimed);
+    display: grid;
+    place-content: center;
+}
+
+.lx-f-user-delete .message {
+    font-size: 18px;
+    color: var(--lx-color-text);
+}
+
+.lx-f-user-delete .actions {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .5rem;
+}
