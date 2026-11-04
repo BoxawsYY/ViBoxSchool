@@ -1,0 +1,32 @@
+.lx-c-assign-roles {
+    width: 100%;
+    padding: 2rem;
+}
+
+.lx-c-assign-roles-description {
+    width: 100%;
+    text-wrap: wrap;
+    white-space: wrap;
+    padding: 1rem;
+    color: var(--lx-color-text-softer);
+}
+
+.lx-c-assign-roles-icon.--Admin {
+    color: var(--lx-color-success);
+}
+
+.lx-c-assign-roles-icon.--User {
+    color: var(--lx-color-info);
+}
+
+.lx-c-assign-roles-icon.--Operator {
+    color: var(--lx-color-warning);
+}
+
+.lx-c-assign-roles-icon.--Guest {
+    color: var(--lx-color-gray);
+}
+
+.lx-c-assign-roles-icon.--Veterinarian {
+    color: var(--lx-color-danger);
+}
