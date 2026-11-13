@@ -1,109 +1,86 @@
-# Stepfive (Inno Project) 1.0.3v
+# ViBoxSchool
 
-Monorepo fullstack compuesto por un backend REST en **Node.js + TypeScript + Express 5 + PostgreSQL** y un frontend en **Vite + React**. El proyecto implementa un sistema completo de autenticación y autorización basado en roles y permisos, con una arquitectura modular en capas y un ORM personalizado construido desde cero.
+ViBoxSchool es una plataforma web multi-colegio (multi-tenant) para gestionar perfiles institucionales, procesos de matrícula y pensiones. Incluye un directorio público de colegios, un wizard de matrícula en línea y paneles por rol para Administrador global, Rector, Secretaría y Padre de Familia.
 
-### Que se puede hacer hoy
+El monorepo contiene una API REST con Node.js, TypeScript, Express 5 y PostgreSQL, y una aplicación SPA en React 18 y Vite. El backend usa un ORM y un sistema de enrutamiento basados en decoradores propios.
 
-- Registrar usuarios (wizard de 5 pasos con carga de imagen a Firebase).
-- Iniciar y cerrar sesion (JWT + cookie HTTP-only).
-- Administrar usuarios: listar, ver detalles, autorizar/desautorizar, asignar roles, eliminar.
-- Administrar roles: crear, editar, activar/desactivar, asignar permisos, eliminar.
-- Consultar permisos: listado con filtros por tipo.
-- Proteger rutas del frontend por roles y permisos.
-- Tema claro/oscuro.
+## Funcionalidades
 
-## Requisitos previos
+- Explorar colegios aliados y consultar el perfil público de cada institución.
+- Iniciar una solicitud de matrícula en cinco pasos, cargar documentos y enviarla para revisión.
+- Gestionar colegios desde el panel de Administración global, incluidos su estado activo/suspendido.
+- Mostrar navegación y secciones según el rol autenticado.
+- Usar autenticación JWT con validación de roles y permisos en el servidor.
+- Cambiar entre modo claro y oscuro.
+- Guardar documentos de matrícula en un bucket privado de Supabase Storage con URLs firmadas.
 
-| Herramienta | Version minima |
-|-------------|----------------|
-| Node.js     | 18 LTS         |
-| pnpm        | 8+             |
-| Supabase    | Opcional, solo para desarrollo local |
+Los módulos de usuarios, auditoría, correos, parámetros globales y ciertas opciones de los paneles todavía muestran una pantalla de “Módulo en desarrollo”.
 
-## Quick Start
+## Requisitos
 
-```bash
-# 1. Clonar e instalar
-git clone <url-del-repo> && cd stepfive
-pnpm install --prefix api
-pnpm install --prefix app
+- Node.js 18 LTS o superior.
+- pnpm 8 o superior.
+- PostgreSQL (local o el Session Pooler de Supabase).
+- Un proyecto Supabase Storage para las cargas de documentos de matrícula.
 
-# 2. Configurar backend
-cp api/.env.example api/.env
-# Edita api/.env con las credenciales de Supabase (ver api/README.md)
+## Inicio rápido
 
-# 3. Configurar frontend
-cp app/.env.example app/.env
-# Edita app/.env con la URL del backend
+Desde la raíz del repositorio:
 
-# 4. Levantar (dos terminales)
-pnpm run dev --prefix api   # http://localhost:3000/api/v1
-pnpm run dev --prefix app   # http://localhost:5173
+```powershell
+pnpm install --dir api
+pnpm install --dir app
+Copy-Item api/.env.example api/.env
+Copy-Item app/.env.example app/.env
 ```
 
-### Verificar que funciona
+Completa los archivos `.env` con la configuración del entorno y ejecuta la API y la app en terminales separadas:
 
-- Backend: abre `http://localhost:3000/api/v1/auth/health` y espera un JSON con `"status": "ok"`.
-- Frontend: abre `http://localhost:5173` y deberia cargar la pantalla de login.
+```powershell
+# Terminal 1
+pnpm --dir api run dev
 
-## Estructura del Monorepo
-
-![WhatsApp Image 2026-04-13 at 11 06 12 PM](https://github.com/user-attachments/assets/a889c7fb-8dc9-4fa9-a702-a665fbf7af8b)
-
-
+# Terminal 2
+pnpm --dir app run dev
 ```
-stepfive/
-├── api/          # Backend — Express 5, TypeScript, ORM custom, PostgreSQL
-│   └── src/
-│       ├── core/     # Framework: ORM, router, decoradores, DI, middlewares
-│       └── auth/     # Modulo de auth: controladores, servicios, entidades, repos
-├── app/          # Frontend — React 18, Vite, React Router
-│   └── src/
-│       ├── core/     # Componentes, contextos, hooks, servicios y estilos compartidos
-│       └── modules/  # auth (login/registro) y panel (dashboard, usuarios, roles)
+
+La app estará en `http://localhost:5173` y la API en `http://localhost:3000/api/v1`. Consulta [api/README.md](./api/README.md) y [app/README.md](./app/README.md) para configuración, endpoints y detalles de cada módulo.
+
+## Estructura del monorepo
+
+```text
+ViBoxSchool/
+├── api/                              # API REST (Express + TypeScript + PostgreSQL)
+│   ├── src/
+│   │   ├── core/                     # Router, decoradores, DI, ORM y middleware
+│   │   ├── auth/                     # Autenticación, usuarios, roles y permisos
+│   │   ├── schools/                  # Gestión y directorio público de colegios
+│   │   └── enrollments/              # Matrículas, borradores y documentos
+│   ├── .env.example
+│   └── README.md
+├── app/                              # SPA (React + Vite)
+│   ├── src/
+│   │   ├── core/                     # Componentes, contextos, servicios y tokens
+│   │   ├── modules/
+│   │   │   ├── public/               # Landing, perfil y wizard de matrícula
+│   │   │   ├── auth/                 # Inicio de sesión
+│   │   │   ├── admin/                # Gestión global de colegios
+│   │   │   └── panel/                # Layout, navegación y paneles por rol
+│   │   └── main.jsx                  # Providers y rutas
+│   ├── .env.example
+│   └── README.md
 └── README.md
 ```
 
-> La carpeta `shared/` no existe aun; esta reservada para codigo compartido si el equipo decide crearla.
+## Comandos
 
-## Scripts por proyecto
+| Proyecto | Comando | Descripción |
+|---|---|---|
+| API | `pnpm --dir api run dev` | Servidor de desarrollo con recarga |
+| API | `pnpm --dir api run build` | Compilar TypeScript |
+| API | `pnpm --dir api run seed:demo-accounts` | Crear o actualizar las cuentas de prueba |
+| App | `pnpm --dir app run dev` | Servidor Vite |
+| App | `pnpm --dir app run build` | Build de producción |
+| App | `pnpm --dir app run lint` | ESLint |
 
-### Backend (`api/`)
-
-| Comando         | Descripcion                          |
-|-----------------|--------------------------------------|
-| `pnpm run dev`   | Desarrollo con hot-reload (tsx)      |
-| `pnpm run build` | Compila TypeScript a `dist/`         |
-| `pnpm start`     | Ejecuta build de produccion          |
-
-### Frontend (`app/`)
-
-| Comando           | Descripcion                        |
-|-------------------|------------------------------------|
-| `pnpm run dev`     | Servidor de desarrollo con HMR     |
-| `pnpm run build`   | Build de produccion                |
-| `pnpm run preview` | Preview del build                  |
-| `pnpm run lint`    | ESLint                             |
-
-### Ejecucion simultanea
-
-Sin herramientas extra (dos terminales):
-
-```bash
-# Terminal 1
-pnpm run dev --prefix api
-
-# Terminal 2
-pnpm run dev --prefix app
-```
-
-Con una sola terminal:
-
-```bash
-pnpm dlx concurrently "pnpm run dev --prefix api" "pnpm run dev --prefix app"
-```
-
-## Documentacion detallada
-
-- [api/README.md](./api/README.md) — variables de entorno, base de datos, endpoints de auth.
-- [app/README.md](./app/README.md) — servidor de desarrollo, AuthContext, configuracion de API.
+Para configurar la base de datos, el almacenamiento privado y los seeders, consulta [api/README.md](./api/README.md). La configuración del frontend y sus rutas se describe en [app/README.md](./app/README.md).
