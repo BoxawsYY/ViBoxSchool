@@ -1,6 +1,6 @@
 export interface ColumnConfig {
     name?: string
-    type?: 'string' | 'number' | 'boolean' | 'date' | 'uuid' | 'text'
+    type?: 'string' | 'number' | 'boolean' | 'date' | 'uuid' | 'text' | 'decimal' | 'bigint' | 'json'
     nullable?: boolean
     default?: any
     unique?: boolean
