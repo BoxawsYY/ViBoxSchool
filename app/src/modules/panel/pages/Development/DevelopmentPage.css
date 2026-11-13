@@ -1,0 +1,40 @@
+.lx-p-development {
+    min-height: 100%;
+    padding: clamp(24px, 5vw, 64px);
+    display: grid;
+    align-content: center;
+    justify-items: center;
+    text-align: center;
+    color: var(--lx-color-text);
+}
+
+.lx-p-development > .material-symbols-rounded {
+    width: 72px;
+    height: 72px;
+    display: grid;
+    place-items: center;
+    border-radius: var(--lx-border-radius-circle);
+    color: var(--lx-color-accent);
+    background: var(--lx-color-accent-dimed);
+    font-size: 36px;
+}
+
+.lx-p-development > p:first-of-type {
+    margin: 24px 0 8px;
+    color: var(--lx-color-accent-dark);
+    font-size: var(--lx-font-size-xs);
+    font-weight: 700;
+    letter-spacing: .08em;
+}
+
+.lx-p-development h1 {
+    margin: 0;
+    font-size: clamp(26px, 4vw, 40px);
+}
+
+.lx-p-development > p:last-of-type {
+    max-width: 520px;
+    margin: 12px 0 0;
+    color: var(--lx-color-text-muted);
+    line-height: 1.6;
+}
