@@ -1,265 +1,137 @@
-# API (`/api`)
+# API de ViBoxSchool
 
-Servicio backend del proyecto ViBoxSchool. Expone una API REST para **directorio público de colegios** e identidad y control de acceso (IAM).
+Backend REST para la plataforma multi-colegio de matrículas y pensiones. Está construido con Node.js, TypeScript, Express 5 y PostgreSQL. El framework interno usa decoradores para rutas y autorización, inyección de dependencias y un ORM propio.
 
-Construido con un **framework custom** sobre Express 5: decoradores para rutas (`@Controller`, `@Get`, `@Post`...), inyeccion de dependencias (`@Inject`), un ORM propio con sincronizacion automatica de esquema, y middleware de autorizacion basado en permisos.
+## Configuración
 
-### Entidades del sistema
-
-| Entidad        | Tabla            | Proposito                                                     |
-|----------------|------------------|---------------------------------------------------------------|
-| `User`         | `Users`          | Cuenta y perfil (nombre, documento, contacto, imagen, flags)  |
-| `Role`         | `Roles`          | Rol con nombre, alias, descripcion (ej: Admin, Guest, User)   |
-| `Permission`   | `Permissions`    | Permiso granular con tipo (Access, Create, Read, Update, etc.) |
-| `BlockedToken` | `BlockedTokens`  | Tokens JWT revocados (logout)                                  |
-| `School`       | `Schools`        | Perfil institucional y publicación en el directorio público   |
-
-Relaciones: `UsersRoles` (M2M usuario-rol), `RolesPermissions` (M2M rol-permiso).
-
-## Instalacion
-
-```bash
-cd api
+```powershell
 pnpm install
-cp .env.example .env   # edita con tus valores
+Copy-Item .env.example .env
 ```
 
-## Variables de entorno (`.env`)
+Configura las variables en `api/.env` antes de iniciar el servidor. No compartas ni subas ese archivo al repositorio.
 
-| Variable       | Descripcion                        | Ejemplo                        |
-|----------------|------------------------------------|--------------------------------|
-| `APP_NAME`     | Nombre de la app                   | `Stepfive Inno Project API`    |
-| `VERSIONING`   | Prefijo de rutas                   | `/api/v1`                      |
-| `PORT`         | Puerto del servidor                | `3000`                         |
-| `DB_HOST`      | Host de PostgreSQL                 | `aws-0-[region].pooler.supabase.com` |
-| `DB_PORT`      | Puerto de PostgreSQL               | `5432`                         |
-| `DB_USER`      | Usuario de PostgreSQL              | `postgres.[your-project-ref]`  |
-| `DB_PASSWORD`  | Contrasena de PostgreSQL           | `postgres`                     |
-| `DB_NAME`      | Nombre de la base de datos         | `postgres`                     |
-| `JWT_SECRET`   | Clave para firmar tokens JWT       | `mi_clave_secreta`             |
-| `JWT_EXPIRES_IN`| Expiracion del token              | `30d`                          |
+| Variable | Requerida | Uso |
+|---|---:|---|
+| `APP_NAME` | No | Nombre que muestra el servidor al iniciar. |
+| `HOST_NAME` | No | Host incluido en el mensaje de inicio. |
+| `VERSIONING` | No | Prefijo versionado de la API; por defecto `/api/v1`. |
+| `PORT` | No | Puerto HTTP; por defecto `3000`. |
+| `DB_HOST` | Sí | Host PostgreSQL o Session Pooler de Supabase. |
+| `DB_PORT` | No | Puerto PostgreSQL; por defecto `5432`. |
+| `DB_USER` | Sí | Usuario de la base de datos. |
+| `DB_PASSWORD` | Sí | Contraseña de la base de datos. |
+| `DB_NAME` | Sí | Nombre de la base de datos. |
+| `JWT_SECRET` | Sí | Secreto para firmar y verificar JWT. Usa un valor largo y aleatorio. |
+| `JWT_EXPIRES_IN` | Sí | Duración del JWT, por ejemplo `30d`. |
+| `SUPABASE_URL` | Para documentos | URL del proyecto Supabase. |
+| `SUPABASE_SERVICE_ROLE_KEY` | Para documentos | Clave privada usada en el servidor para URLs de carga firmadas. Nunca se expone al frontend. |
+| `DEMO_LOGIN_ENABLED` | No | Solo habilita `POST /auth/demo-login` si vale `true`. |
+| `VIBOX_DEMO_PASSWORD` | Para demos | Contraseña común que asigna el seeder de cuentas de prueba. Debe cumplir la política de contraseña fuerte. |
 
-> **Nota:** La conexion usa el Session Pooler de Supabase (IPv4) en lugar de la conexion directa (IPv6), porque muchas redes no soportan IPv6.
+La conexión a Supabase PostgreSQL puede usar Session Pooler, útil en entornos con IPv4. El ORM ejecuta `Database.sync()` al arrancar la API y crea/sincroniza las tablas definidas por las entidades registradas.
 
-## Base de datos: migraciones y seeders
+## Ejecutar y compilar
 
-### 1) Configurar Supabase
-
-1. Crea un proyecto en Supabase.
-2. Ve a **Settings → Database → Connection String**.
-3. Selecciona **Session pooler** y copia los valores de conexion al archivo `.env`.
-
-### 2) Migraciones (automaticas)
-
-Al ejecutar `pnpm run dev`, el ORM sincroniza las tablas automaticamente. Veras en consola:
-
-```
-[ORM] ✔ Initializing Database...
-[ORM] ✔ Migration completed
-[ORM] ✔ Database ready
+```powershell
+pnpm run dev
+pnpm run build
+pnpm start
 ```
 
-No hay comando `pnpm run migrate` separado; la sincronizacion ocurre cada vez que inicia el servidor.
+La base de la API local es `http://localhost:3000/api/v1`. Las rutas protegidas reciben `Authorization: <JWT>` o la cookie HTTP-only `accessToken`.
 
-### 3) Seed inicial (opcional)
+## Módulos y endpoints
 
-Carga roles, permisos y sus asignaciones base. Ejecuta el contenido de `src/core/orm/database/scripts/init.sql` en el **SQL Editor** de Supabase.
+Los controladores se montan bajo el prefijo configurado en `VERSIONING`.
 
-Esto inserta los roles `Guest`, `User` y `Admin`, mas los permisos CRUD y los asigna al rol `Admin`.
+### Autenticación (`/auth`)
 
-## Endpoints de auth
+| Método | Ruta | Acceso | Descripción |
+|---|---|---|---|
+| `GET` | `/auth/health` | Público | Estado del servicio. |
+| `POST` | `/auth/login` | Público | Autentica `username`, `password` y el `role` seleccionado; verifica los roles reales del usuario. |
+| `POST` | `/auth/demo-login` | Público y opcional | Inicio de sesión para demos, sujeto a `DEMO_LOGIN_ENABLED`. |
+| `POST` | `/auth/logout` | Sesión | Cierra sesión e invalida el token. |
+| `GET` | `/auth/me` | Sesión | Perfil de la cuenta autenticada. |
+| `GET` | `/auth/session` | Sesión | Estado de la sesión actual. |
+| `GET` | `/auth/session/roles` | Sesión | Roles del usuario actual. |
+| `GET` | `/auth/session/permissions` | Sesión | Permisos del usuario actual. |
+| `PATCH` | `/auth/modify` | Sesión | Actualiza datos del perfil. |
+| `PATCH` | `/auth/reset` | Sesión | Cambia la contraseña. |
+| `POST` | `/auth/register` | Admin | Registra una cuenta administrativamente. |
 
-**Base URL local:** `http://localhost:3000/api/v1`
+Los controladores de usuarios, roles, permisos y autorización también exponen endpoints bajo `/auth`: `/auth/users`, `/auth/roles`, `/auth/permissions`, `/auth/assign/roles`, `/auth/revoke/roles`, `/auth/assign/permissions`, `/auth/revoke/permissions`, `/auth/authorize/:username` y `/auth/disauthorize/:username`. Las operaciones administrativas requieren los permisos correspondientes.
 
-### Directorio público de colegios (sin token)
+### Colegios (`/schools`)
 
-| Metodo | Ruta                     | Descripcion |
-|--------|--------------------------|-------------|
-| `GET`  | `/schools/discover`      | Colegios aliados activos, ordenados por nombre |
-| `GET`  | `/schools/:code`         | Perfil público de un colegio por su código corto |
+| Método | Ruta | Acceso | Descripción |
+|---|---|---|---|
+| `GET` | `/schools/discover` | Público | Directorio de colegios aliados activos. |
+| `GET` | `/schools/:code` | Público | Perfil público, grados, cupos y requisitos de matrícula. |
+| `GET` | `/schools` | Admin | Lista colegios, incluidos suspendidos y no eliminados lógicamente. |
+| `POST` | `/schools` | Admin | Crea colegio y valores académicos iniciales. |
+| `PATCH` | `/schools/:id` | Admin | Edita los datos principales del colegio. |
+| `PATCH` | `/schools/:id/status` | Admin | Cambia `status` entre `active` y `suspended`, sincronizando `isActive`. |
+| `PATCH` | `/schools/:id/deactivate` | Admin | Suspende el colegio (acción equivalente de compatibilidad). |
 
-El directorio y el perfil solo incluyen colegios con `status = active`, `isActive = true`, `isDeleted = false` e `isPartner = true`. El ORM sincroniza la tabla `Schools` al iniciar la API.
+El directorio público filtra colegios suspendidos, inactivos, eliminados o no aliados.
 
-### Rutas publicas (sin token)
+### Matrículas (`/enrollments`)
 
-#### `POST /auth/register`
+| Método | Ruta | Acceso | Descripción |
+|---|---|---|---|
+| `POST` | `/enrollments` | Público | Crea un borrador de matrícula y devuelve un token de acceso temporal. |
+| `POST` | `/enrollments/:id/documents/upload-url` | Token de borrador | Emite URL/credenciales firmadas para cargar un documento al bucket privado. |
+| `POST` | `/enrollments/:id/documents` | Token de borrador | Verifica y registra el documento cargado. |
+| `POST` | `/enrollments/:id/submit` | Token de borrador | Valida y envía la solicitud de matrícula. |
 
-Registra un nuevo usuario.
+Las rutas de documento y envío reciben el token del borrador mediante el header `x-enrollment-token`. El borrador tiene vencimiento y el backend valida colegio, periodo, cupos, tipo documental y metadatos/bytes de los archivos.
 
-**Request:**
+## Aislamiento multi-tenant
 
-```json
-{
-  "name": "Juan Perez",
-  "username": "juanperez",
-  "documentType": "CC",
-  "documentNumber": "123456789",
-  "phoneNumber": "+573001234567",
-  "email": "juan@example.com",
-  "password": "MiPassword123!",
-  "birthdate": "1995-06-15"
-}
-```
+Cada colegio es una entidad `School` identificada por su `id`. Los registros institucionales de matrículas, periodos, estudiantes, grados, documentos y requisitos llevan `schoolId`. Las consultas y las relaciones de matrícula acotan los registros por ese identificador, además de validar que `gradePeriodId` pertenezca a la combinación esperada de `schoolId` y `periodId`. Esto actúa como una clave compuesta lógica para evitar asociar por error datos de distintos colegios.
 
-**Campos obligatorios:** `name`, `username`, `documentType`, `documentNumber`, `phoneNumber`, `email`, `password`.
+Las tablas de relaciones muchos-a-muchos del ORM usan claves primarias compuestas con ambos identificadores (por ejemplo, usuario/rol). Los endpoints públicos solo exponen datos de colegios aliados activos; la API administrativa conserva la visibilidad de colegios suspendidos para permitir su reactivación.
 
-**Validaciones importantes:**
-- `username`: alfanumerico, entre 2 y 50 caracteres.
-- `password`: minimo 8 caracteres, al menos una letra, un numero y un simbolo (`@$!%*?&`).
-- `email`: formato valido.
-- `birthdate`: formato `YYYY-MM-DD`.
+## ORM y arquitectura
 
-**Response `201`:**
+`src/core/orm` contiene los decoradores de entidad/columna/relación, el `Database` de PostgreSQL y el `BaseRepository`. Durante el arranque, las entidades importadas en `src/index.ts` se registran y `Database.sync()` sincroniza las tablas y relaciones. Los repositorios de escuelas y matrículas contienen SQL explícito para las consultas multi-tenant y las operaciones transaccionales.
 
-```json
-{
-  "id": "550e8400-e29b-41d4-a716-446655440000",
-  "name": "Juan Perez",
-  "username": "juanperez",
-  "email": "juan@example.com",
-  "documentType": "CC",
-  "documentNumber": "123456789",
-  "phoneNumber": "+573001234567",
-  "birthdate": "1995-06-15T00:00:00.000Z",
-  "isAuthorized": true,
-  "isOnline": false,
-  "status": "Created",
-  "createdAt": "2026-04-13T22:00:00.000Z"
-}
-```
+`CoreRouter` descubre los controladores y registra rutas definidas con decoradores como `@Controller`, `@Get`, `@Post`, `@Patch`, `@Roles`, `@Permissions` y `@Public`. El middleware de autenticación verifica JWT y el handler aplica roles/permisos antes del controlador.
 
----
-
-#### `POST /auth/login`
-
-Inicia sesion. Devuelve un JWT en el body y como cookie HTTP-only `accessToken`.
-
-**Request:**
-
-```json
-{
-  "username": "juanperez",
-  "password": "MiPassword123!"
-}
-```
-
-**Response `201`:**
-
-```json
-{
-  "token": "eyJhbGciOiJIUzI1NiIs...",
-  "user": {
-    "id": "550e8400-e29b-41d4-a716-446655440000",
-    "name": "Juan Perez",
-    "username": "juanperez",
-    "email": "juan@example.com",
-    "isOnline": true,
-    "lastLogin": "2026-04-13T22:00:00.000Z",
-    "roles": ["Guest"],
-    "permissions": []
-  }
-}
-```
-
-### Rutas protegidas (requieren header `Authorization: <token>`)
-
-#### Sesion y cuenta
-
-| Metodo  | Ruta             | Descripcion                          |
-|---------|------------------|--------------------------------------|
-| `POST`  | `/auth/logout`   | Cierra sesion e invalida el token    |
-| `GET`   | `/auth/me`       | Datos del usuario autenticado        |
-| `PATCH` | `/auth/modify`   | Modifica datos del usuario           |
-| `PATCH` | `/auth/reset`    | Cambia contrasena                    |
-| `GET`   | `/auth/session`  | Info de sesion actual                |
-| `GET`   | `/auth/session/roles` | Roles del usuario actual        |
-| `GET`   | `/auth/session/permissions` | Permisos del usuario actual |
-
-#### `PATCH /auth/reset` — ejemplo
-
-```json
-{
-  "oldPassword": "MiPassword123!",
-  "newPassword": "NuevaPassword456!"
-}
-```
-
-#### CRUD de usuarios (requiere permisos `ReadUsers`, `CreateUsers`, etc.)
-
-| Metodo   | Ruta                    | Descripcion                  |
-|----------|-------------------------|------------------------------|
-| `GET`    | `/auth/users`           | Listar usuarios              |
-| `GET`    | `/auth/users/:username` | Obtener por username         |
-| `POST`   | `/auth/users`           | Crear usuario                |
-| `PUT`    | `/auth/users/:username` | Actualizar usuario           |
-| `DELETE` | `/auth/users/:username` | Eliminar usuario (soft)      |
-| `POST`   | `/auth/authorize/:username`   | Autorizar usuario     |
-| `POST`   | `/auth/disauthorize/:username`| Desautorizar usuario  |
-
-#### CRUD de roles (requiere permisos `ReadRoles`, `CreateRoles`, etc.)
-
-| Metodo   | Ruta                             | Descripcion                  |
-|----------|----------------------------------|------------------------------|
-| `GET`    | `/auth/roles`                    | Listar roles                 |
-| `POST`   | `/auth/roles`                    | Crear rol                    |
-| `GET`    | `/auth/roles/:name`              | Obtener por nombre           |
-| `PUT`    | `/auth/roles/:name`              | Actualizar rol               |
-| `DELETE` | `/auth/roles/:name`              | Eliminar rol                 |
-| `PATCH`  | `/auth/activate/roles/:name`     | Activar rol                  |
-| `PATCH`  | `/auth/deactivate/roles/:name`   | Desactivar rol               |
-| `POST`   | `/auth/assign/roles`             | Asignar roles a usuario      |
-| `POST`   | `/auth/revoke/roles`             | Revocar roles de usuario     |
-| `POST`   | `/auth/check/roles`              | Verificar roles de usuario   |
-
-#### CRUD de permisos (requiere permisos `ReadPermissions`, `CreatePermissions`, etc.)
-
-| Metodo   | Ruta                              | Descripcion                     |
-|----------|-----------------------------------|---------------------------------|
-| `GET`    | `/auth/permissions`               | Listar permisos                 |
-| `POST`   | `/auth/permissions`               | Crear permiso                   |
-| `GET`    | `/auth/permissions/:name`         | Obtener por nombre              |
-| `PUT`    | `/auth/permissions/:name`         | Actualizar permiso              |
-| `DELETE` | `/auth/permissions/:name`         | Eliminar permiso                |
-| `POST`   | `/auth/assign/permissions`        | Asignar permisos a rol          |
-| `POST`   | `/auth/revoke/permissions`        | Revocar permisos de rol         |
-| `POST`   | `/auth/check/permissions`         | Verificar permisos de rol       |
-
-## Arquitectura
-
-```
+```text
 src/
-├── core/                    # Framework custom
-│   ├── config/              # APP_NAME, PORT, VERSIONING
-│   ├── container/           # Contenedor de DI (singleton, reflect-metadata)
-│   ├── decorators/          # @Controller, @Get, @Post, @Inject, @Permissions, @Public...
-│   ├── errors/              # Errores HTTP (HandleableError)
-│   ├── handlers/            # RouteHandler: wraps auth + permissions check
-│   ├── metadata/            # Reflect metadata keys
-│   ├── middlewares/         # AuthMiddleware (JWT), ErrorMiddleware
-│   ├── orm/                 # ORM custom: @Entity, @Column, @Id, relaciones, Database.sync()
-│   ├── router/              # CoreRouter: auto-descubre controladores en src/
-│   └── utils/               # Validator (required, email, strongPassword, etc.)
-│
-├── auth/                    # Modulo de identidad y acceso
-    ├── constants/           # Constantes de permisos y roles
-    ├── controllers/         # Auth, Authentication, Authorization, User, Role, Permission
-    ├── dtos/                # UserDTO (excluye password)
-    ├── entities/            # User, Role, Permission, BlockedToken
-    ├── repositories/        # Acceso a datos por entidad
-    └── services/            # Logica de negocio por entidad
-
-└── schools/                 # Directorio público multi-colegio
-    ├── controllers/         # Rutas públicas del directorio y perfil
-    ├── dtos/                # Respuesta pública sin UUID ni auditoría
-    ├── entities/            # School
-    ├── repositories/        # Consultas de colegios publicables
-    └── services/            # Reglas de publicación
+├── core/              # Config, router, decoradores, DI, middleware y ORM
+├── auth/              # Usuarios, autenticación, roles, permisos y seed demo
+├── schools/           # Colegios, directorio y seed de colegios
+└── enrollments/       # Matrículas, periodos, grados y documentos
 ```
 
-## Scripts
+## Datos iniciales y seeders
 
-| Comando         | Descripcion                         |
-|-----------------|-------------------------------------|
-| `pnpm run dev`   | Desarrollo con hot-reload (tsx)     |
-| `pnpm run build` | Compila TypeScript a `dist/`        |
-| `pnpm start`     | Ejecuta build de produccion         |
+1. Inicia la API con las credenciales de DB configuradas; el ORM sincroniza el esquema.
+2. Inicializa roles y permisos base ejecutando una vez `src/core/orm/database/scripts/init.sql` en el SQL Editor de PostgreSQL/Supabase.
+3. Para cargar colegios de demostración, ejecuta `src/schools/scripts/seed-schools.sql` después de que exista la tabla `Schools`.
+4. Para generar o actualizar las cuentas de prueba, define `VIBOX_DEMO_PASSWORD` en `.env` y ejecuta:
+
+   ```powershell
+   pnpm run seed:demo-accounts
+   ```
+
+   Crea las cuentas de roles Admin, Rector, Secretaría y Padre de Familia. Para habilitar el login de demo en un entorno apropiado, configura además `DEMO_LOGIN_ENABLED=true`. No habilites este acceso en producción sin una decisión explícita de despliegue.
+
+El seeder de colegios es SQL y se ejecuta manualmente. El seeder de cuentas es un script Node que usa las variables DB del API.
+
+## Supabase Storage para matrícula
+
+Crea el bucket privado `enrollment-documents`. Configura `SUPABASE_URL` y `SUPABASE_SERVICE_ROLE_KEY` solo en el API. El backend genera credenciales firmadas de corta duración, valida la ruta bajo el prefijo del colegio/borrador/requisito, revisa MIME, tamaño y firma del archivo, y luego asocia el documento al borrador. Nunca expongas la service-role key.
+
+## Scripts disponibles
+
+| Comando | Descripción |
+|---|---|
+| `pnpm run dev` | Desarrollo con `tsx` y recarga. |
+| `pnpm run build` | Compilación TypeScript. |
+| `pnpm start` | Ejecuta `dist/index.js`. |
+| `pnpm run seed:demo-accounts` | Crea/actualiza las cuentas de demostración. |
