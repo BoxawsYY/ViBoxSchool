@@ -84,20 +84,28 @@ export class UserService {
         return await this.userRepository.delete(user.id)
     }
 
-    async login({ username, password }) {
-        const user = await this.userRepository.findOneBy('username', username)
+    async login({ username, password, role }) {
+        const user = await this.userRepository.findByLoginIdentifier(username)
 
-        if (!user) throw new NotFoundError('El username no corresponde a ningún usuario registrado')
+        if (!user) throw new InvalidCredentialError('Las credenciales no son válidas')
         if (!user.isAuthorized) throw new UnauthorizedError('El usuario no está autorizado para iniciar sesión')
         if (user.isDeleted) throw new UnauthorizedError('El usuario ha sido eliminado')
         if (!user.isActive) throw new UnauthorizedError('El usuario ha sido desactivado')
-        if (!(await bcrypt.compare(password, user.password))) throw new InvalidCredentialError('El password no corresponde al username registrado')
+        if (!(await bcrypt.compare(password, user.password))) throw new InvalidCredentialError('Las credenciales no son válidas')
 
         let roles = await this.roleRepository.findManyByUserId(user.id)
         let permissions = await this.permissionRepository.findManyByUserId(user.id)
 
         roles = [...new Set(roles.filter(role => role.isActive).map(role => role.name))]
         permissions = [...new Set(permissions.filter(permission => permission.isActive).map(permission => permission.name))]
+
+        if (typeof role !== 'string' || !roles.includes(role)) {
+            throw new UnauthorizedError('El usuario no tiene el rol seleccionado')
+        }
+
+        if (!process.env.JWT_SECRET) {
+            throw new Error('JWT_SECRET no está configurado')
+        }
 
         const token = jwt.sign({
             userId: user.id,
