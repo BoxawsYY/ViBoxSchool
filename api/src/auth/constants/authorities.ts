@@ -1,7 +1,10 @@
 export const ROLES = {
     GUEST: 'Guest',
     USER: 'User',
-    ADMIN: 'Admin'
+    ADMIN: 'Admin',
+    RECTOR: 'Rector',
+    SECRETARY: 'Secretary',
+    GUARDIAN: 'Guardian'
 }
 
 export const PERMISSIONS = {

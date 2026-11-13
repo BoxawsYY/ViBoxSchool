@@ -1,146 +1,146 @@
 import './PanelLayout.css'
-import { useEffect, useState } from 'react'
-import { NavLink, Outlet, useLocation } from 'react-router-dom'
+import { useEffect, useState, Fragment } from 'react'
+import PropTypes from 'prop-types'
+import { NavLink, Outlet } from 'react-router-dom'
 import { useAuth } from '../../../core/contexts/AuthContext'
 import { useTheme } from '../../../core/hooks/useTheme'
-import UserSessionCard from '../components/User/UserSessionCard'
 import ConnectionWrapper from '../../../core/components/ConnectionWrapper/ConnectionWrapper'
-import Logo from '../../../core/components/Logo/Logo'
-import Icon from '../../../core/components/Icon/Icon'
-import Button from '../../../core/components/Button/Button'
+import PanelHeader from '../components/PanelHeader/PanelHeader'
+import UserSessionCard from '../components/User/UserSessionCard'
+import { ROLE_MENUS } from '../config/panel.config'
 
-function PanelLayout({ menu }) {
-  const { isDarkTheme, setThemePreference } = useTheme()
-  const [sidebar, setSidebar] = useState(JSON.parse(window.localStorage.getItem('sidebar')) || false)
-  const [user, setUser] = useState(false)
-  const { session, signOut, hasAuthorities } = useAuth()
-  const location = useLocation()
+const getInitialSidebarState = () => {
+    try {
+        const stored = window.localStorage.getItem('sidebar')
+        return stored === null ? true : JSON.parse(stored)
+    } catch {
+        return true
+    }
+}
 
-  const supmenu = menu.find(item => location.pathname.startsWith(item.to) && item.items?.length > 0)
+function PanelLayout({ menu, role: forcedRole }) {
+    const { session, signOut, hasAuthorities } = useAuth()
+    const { isDarkTheme, setThemePreference } = useTheme()
+    const [sidebarExpanded, setSidebarExpanded] = useState(getInitialSidebarState)
+    const [userCardOpen, setUserCardOpen] = useState(false)
+    const role = forcedRole || session?.user?.roles?.find((userRole) => ROLE_MENUS[userRole]) || 'Admin'
+    const activeMenu = role === 'Admin' ? menu : ROLE_MENUS[role] || menu
+    const visibleItems = activeMenu.filter((item) => hasAuthorities(session, item.authorities))
 
-  const submenu = supmenu?.items.find(item => location.pathname.endsWith(item.to))
+    useEffect(() => {
+        window.localStorage.setItem('sidebar', JSON.stringify(sidebarExpanded))
+    }, [sidebarExpanded])
 
-  useEffect(() => {
-    localStorage.setItem('sidebar', sidebar)
-  }, [sidebar])
+    if (!session) return null
 
-  return session && (<>
-    <div className='lx-l-panel'>
+    const user = session.user || {}
+    const userName = user.name || user.username || 'Usuario'
+    const userEmail = user.email || 'Sin correo'
 
-      <aside className='lx-l-panel-sidebar'>
-
-        <div className={sidebar ? 'lx-l-panel-sidebar-menu' : 'lx-l-panel-sidebar-menu disabled'}>
-
-          <div className='lx-l-panel-sidebar-session' onClick={() => setUser(!user)}>
-            <div className='lx-l-panel-sidebar-session-avatar'>
-              {session.user?.image ? <img src={session.user.image} className='--image' /> : <div className='--char'>
-                {session.user?.name ? session.user?.name[0] : '?'}
-              </div>}
-            </div>
-            <div className='lx-l-panel-sidebar-session-user'>
-              <p>{session.user?.name || 'Visitante'}</p>
-              <span>@{session.user?.username || 'visitante'}</span>
-            </div>
-          </div>
-
-          <div className='lx-l-panel-sidebar-content'>
-            <nav className='lx-l-panel-nav'>
-              {menu.filter(item => hasAuthorities(session, item.authorities)).map(item => (<div className='lx-l-panel-sidebar-nav-item' key={item.to}>
-                <NavLink
-                  key={item.to}
-                  to={item.to}
-                  end={item.isBase ? true : false}
-                  className={({ isActive }) =>
-                    isActive ? 'lx-l-panel-sidebar-nav-btn active' : 'lx-l-panel-sidebar-nav-btn'
-                  }
-                >
-                  <div className='lx-l-panel-sidebar-nav-btn-icon'>
-                    <span className='material-symbols-rounded' translate='no'>{item.icon}</span>
-                  </div>
-                  <div className='lx-l-panel-sidebar-nav-btn-text'>{item.label}</div>
-                  <div className='lx-l-panel-sidebar-nav-btn-label'>{item.label}</div>
-                  {item.items?.length > 0 && <span className='material-symbols-rounded lx-l-panel-sidebar-nav-item-sup-indicator' translate='no'>chevron_right</span>}
-                </NavLink>
-                {item.items?.length > 0 && <>
-                  <div className={`lx-l-panel-sidebar-nav-sub-items ${sidebar && 'enable'}`}>
-                    {item.items?.map(item => (
-                      <NavLink
-                        key={item.to}
-                        to={item.to}
-                        end
-                        className={({ isActive }) =>
-                          isActive ? 'lx-l-panel-sidebar-nav-btn active' : 'lx-l-panel-sidebar-nav-btn'
-                        }
-                      >
-                        <div className='lx-l-panel-sidebar-nav-btn-icon'>
-                          <span className='material-symbols-rounded' translate='no'>{item.icon}</span>
-                        </div>
-                        <div className='lx-l-panel-sidebar-nav-btn-text'>{item.label}</div>
-                      </NavLink>
-                    ))}
-                  </div>
-                </>}
-              </div>))}
-            </nav>
-
-            <div className='lx-l-panel-sidebar-section'>
-
-              <div className='lx-l-panel-sidebar-nav-btn' onClick={() => {
-                setThemePreference(isDarkTheme ? 'light' : 'dark')
-              }}>
-                <div className='lx-l-panel-sidebar-nav-btn-icon'>
-                  <span className='material-symbols-rounded' translate='no'>{isDarkTheme ? 'light_mode' : 'dark_mode'}</span>
+    return (
+        <div className={`lx-l-panel ${sidebarExpanded ? 'is-expanded' : 'is-collapsed'}`}>
+            <PanelHeader role={role} />
+            <aside className='lx-l-panel-sidebar'>
+                <div className='lx-l-panel-sidebar-menu'>
+                    <div className='lx-l-panel-sidebar-top'>
+                        <button
+                            className='lx-l-panel-sidebar-session'
+                            type='button'
+                            onClick={() => setUserCardOpen(true)}
+                            title={`${userName} · ${userEmail}`}
+                            aria-label={`Ver perfil de ${userName}`}
+                        >
+                            <span className='lx-l-panel-sidebar-session-avatar'>
+                                {user.image
+                                    ? <img src={user.image} alt='' />
+                                    : <span className='lx-l-panel-sidebar-session-char'>{userName[0]?.toUpperCase() || '?'}</span>}
+                                <span className='lx-l-panel-sidebar-session-status' aria-label='Estado activo' />
+                            </span>
+                            <span className='lx-l-panel-sidebar-session-details'>
+                                <strong>{userName}</strong>
+                                <span>@{user.username || 'visitante'}</span>
+                            </span>
+                        </button>
+                    </div>
+                    <nav className='lx-l-panel-nav' aria-label='Navegación principal'>
+                        {visibleItems.map((item, index) => (
+                            <Fragment key={item.to}>
+                                {item.section && item.section !== visibleItems[index - 1]?.section && (
+                                    <span className='lx-l-panel-nav-section'>{item.section}</span>
+                                )}
+                                <NavLink
+                                    to={item.to}
+                                    end={Boolean(item.isBase)}
+                                    className={({ isActive }) => (
+                                        isActive
+                                            ? 'lx-l-panel-nav-link is-active'
+                                            : 'lx-l-panel-nav-link'
+                                    )}
+                                    title={sidebarExpanded ? undefined : item.label}
+                                >
+                                    <span className='material-symbols-rounded' aria-hidden='true'>{item.icon}</span>
+                                    <span className='lx-l-panel-nav-label'>{item.label}</span>
+                                </NavLink>
+                            </Fragment>
+                        ))}
+                    </nav>
+                    <div className='lx-l-panel-sidebar-footer'>
+                        <button
+                            className='lx-l-panel-sidebar-action lx-l-panel-theme-action'
+                            type='button'
+                            onClick={() => setThemePreference(isDarkTheme ? 'light' : 'dark')}
+                            aria-pressed={isDarkTheme}
+                            title={sidebarExpanded ? undefined : `Modo ${isDarkTheme ? 'claro' : 'oscuro'}`}
+                        >
+                            <span className='material-symbols-rounded' aria-hidden='true'>
+                                {isDarkTheme ? 'light_mode' : 'dark_mode'}
+                            </span>
+                            <span className='lx-l-panel-sidebar-action-label'>Modo {isDarkTheme ? 'claro' : 'oscuro'}</span>
+                        </button>
+                        <button
+                            className='lx-l-panel-sidebar-action lx-l-panel-signout'
+                            type='button'
+                            onClick={signOut}
+                            aria-label='Cerrar sesión'
+                            title={sidebarExpanded ? undefined : 'Cerrar sesión'}
+                        >
+                            <span className='material-symbols-rounded' aria-hidden='true'>logout</span>
+                            <span className='lx-l-panel-sidebar-action-label'>Cerrar sesión</span>
+                        </button>
+                    </div>
                 </div>
-                <div className='lx-l-panel-sidebar-nav-btn-text'>Modo {isDarkTheme ? 'claro' : 'oscuro'}</div>
-                <div className='lx-l-panel-sidebar-nav-btn-label'>Modo</div>
-              </div>
-
-            </div>
-
-            <div className='lx-l-panel-sidebar-brand'>
-              <div className='lx-l-panel-sidebar-brand-mark'>
-                <div className='lx-l-panel-sidebar-brand-icon'>
-                  <Logo color='white' size='xs' />
+                        <button
+                            className='lx-l-panel-sidebar-toggle'
+                            type='button'
+                            onClick={() => setSidebarExpanded((expanded) => !expanded)}
+                            aria-label={sidebarExpanded ? 'Contraer barra lateral' : 'Expandir barra lateral'}
+                            aria-expanded={sidebarExpanded}
+                            title={sidebarExpanded ? 'Contraer menú' : 'Expandir menú'}
+                        >
+                            <span className='material-symbols-rounded' aria-hidden='true'>
+                                {sidebarExpanded ? 'first_page' : 'last_page'}
+                            </span>
+                        </button>
+            </aside>
+            <main className='lx-l-panel-main'>
+                <ConnectionWrapper>
+                    <div className='lx-l-panel-content'>
+                        <Outlet />
+                    </div>
+                </ConnectionWrapper>
+            </main>
+            {userCardOpen && (
+                <div className='lx-l-panel-session-popover'>
+                    <UserSessionCard onClose={() => setUserCardOpen(false)} />
                 </div>
-                <div className='lx-l-panel-sidebar-brand-name'>
-                  <div className='--subtitle'>POWERED BY</div>
-                  <div className='--title'>Stepfive<strong style={{ fontWeight: 200 }}>Team</strong></div>
-                </div>
-                <div className='lx-l-panel-sidebar-odd'>
-                  <Button color='danger' variant='plain' icon onClick={signOut}>
-                    <Icon name='transition_push' />
-                  </Button>
-                </div>
-              </div>
-            </div>
-
-            <button className='lx-l-panel-disabled' onClick={() => setSidebar(!sidebar)}>
-              <span className='material-symbols-rounded' translate='no'>first_page</span>
-            </button>
-          </div>
-
+            )}
         </div>
+    )
+}
 
-      </aside>
-
-      <main className='lx-l-panel-main'>
-        <div className={`lx-l-panel-main-session ${user && 'active'}`}>
-          <UserSessionCard onClose={() => setUser(false)} />
-        </div>
-        <div className='lx-l-panel-main-container'>
-          <ConnectionWrapper>
-            {(supmenu || (supmenu && submenu)) && <>
-              <header className='lx-l-panel-main-container-header'>
-                {submenu ? <span className='material-symbols-rounded' translate='no'>{submenu.icon}</span> : <span className='material-symbols-rounded' translate='no'>{supmenu.icon}</span>}
-                <span className='material-symbols-rounded' translate='no'>chevron_right</span><NavLink to={supmenu.to}>{supmenu.label}</NavLink>{submenu && <><span className='material-symbols-rounded' translate='no'>chevron_right</span><strong>{submenu?.label}</strong></>}
-              </header>
-            </>}
-            <Outlet />
-          </ConnectionWrapper>
-        </div>
-      </main>
-    </div>
-  </>)
+PanelLayout.propTypes = {
+    menu: PropTypes.array.isRequired,
+    role: PropTypes.string
 }
 
 export default PanelLayout

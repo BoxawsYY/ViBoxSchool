@@ -2,25 +2,9 @@ import './LandingPage.css'
 import { useEffect, useMemo, useState } from 'react'
 import PropTypes from 'prop-types'
 import { Link } from 'react-router-dom'
-import PlatformLogo from '../../../core/components/PlatformLogo/PlatformLogo'
-import SchoolRequester from '../services/SchoolRequester.mjs'
-
-const FEATURED_SCHOOLS = [
-    { code: 'colegio-san-rafael', name: 'Colegio San Rafael', city: 'Santa Marta', levelsOffered: 'Preescolar a 11°', availablePlaces: 42, brandColor: '#d9982b', initials: 'SR' },
-    { code: 'gimnasio-del-mar', name: 'Gimnasio del Mar', city: 'Santa Marta', levelsOffered: 'Preescolar a 11°', availablePlaces: 27, brandColor: '#1b9aa5', initials: 'GM' },
-    { code: 'liceo-cartagena-bilingue', name: 'Liceo Cartagena Bilingüe', city: 'Cartagena', levelsOffered: 'Preescolar a 11°', availablePlaces: 18, brandColor: '#a4385b', initials: 'LC' }
-]
-
-const DIRECTORY_SCHOOLS = [
-    { code: 'colegio-bolivariano', name: 'Colegio Bolivariano', city: 'Barranquilla', availablePlaces: 31, initials: 'CB', brandColor: '#287654' },
-    { code: 'ie-tayrona', name: 'I.E. Tayrona', city: 'Santa Marta', availablePlaces: 12, initials: 'IT', brandColor: '#8050a1' },
-    { code: 'colegio-nuestra-senora-del-carmen', name: 'Colegio Nuestra Señora del Carmen', city: 'Cartagena', availablePlaces: 9, initials: 'NC', brandColor: '#c35740' },
-    { code: 'gimnasio-moderno-caribe', name: 'Gimnasio Moderno Caribe', city: 'Barranquilla', availablePlaces: 22, initials: 'GC', brandColor: '#3e70a8' },
-    { code: 'colegio-las-americas', name: 'Colegio Las Américas', city: 'Bogotá', availablePlaces: 15, initials: 'LA', brandColor: '#b48a2d' },
-    { code: 'liceo-simon-bolivar', name: 'Liceo Simón Bolívar', city: 'Santa Marta', availablePlaces: 7, initials: 'SB', brandColor: '#237f8a' },
-    { code: 'colegio-don-bosco', name: 'Colegio Don Bosco', city: 'Valledupar', availablePlaces: 26, initials: 'DB', brandColor: '#984865' },
-    { code: 'instituto-magdalena', name: 'Instituto Magdalena', city: 'Ciénaga', availablePlaces: 11, initials: 'IM', brandColor: '#5d8a4c' }
-]
+import PlatformLogo from '../../../../core/components/PlatformLogo/PlatformLogo'
+import ThemeToggle from '../../../../core/components/ThemeToggle/ThemeToggle'
+import SchoolRequester from '../../services/SchoolRequester.mjs'
 
 const FREQUENT_CITIES = ['Santa Marta', 'Barranquilla', 'Cartagena', 'Bogotá']
 
@@ -69,7 +53,9 @@ SchoolMonogram.propTypes = {
 }
 
 const LandingPage = () => {
-    const [featuredSchools, setFeaturedSchools] = useState(FEATURED_SCHOOLS)
+    const [schools, setSchools] = useState([])
+    const [loading, setLoading] = useState(true)
+    const [loadError, setLoadError] = useState('')
     const [search, setSearch] = useState('')
 
     useEffect(() => {
@@ -77,21 +63,15 @@ const LandingPage = () => {
 
         SchoolRequester.discover()
             .then((schools) => {
-                if (!isMounted || !Array.isArray(schools) || schools.length === 0) return
-
-                setFeaturedSchools(schools.map((school) => {
-                    const example = FEATURED_SCHOOLS.find((item) => item.code === school.code)
-
-                    return {
-                        ...example,
-                        ...school,
-                        availablePlaces: school.availablePlaces ?? example?.availablePlaces,
-                        initials: example?.initials || school.name?.trim().split(/\s+/).slice(0, 2).map((word) => word[0]).join('').toLocaleUpperCase('es')
-                    }
-                }))
+                if (!isMounted) return
+                if (!Array.isArray(schools)) throw new Error('La respuesta del directorio no es válida')
+                setSchools(schools)
             })
             .catch((error) => {
-                console.warn('Se muestran los colegios de ejemplo porque no fue posible cargar el directorio.', error)
+                if (isMounted) setLoadError(error.message)
+            })
+            .finally(() => {
+                if (isMounted) setLoading(false)
             })
 
         return () => {
@@ -100,13 +80,17 @@ const LandingPage = () => {
     }, [])
 
     const normalizedSearch = search.trim().toLocaleLowerCase('es')
+    const featuredSchools = useMemo(
+        () => schools.filter((school) => school.isPartner !== false),
+        [schools]
+    )
     const visibleFeaturedSchools = useMemo(
         () => featuredSchools.filter((school) => matchesSearch(school, normalizedSearch)),
         [featuredSchools, normalizedSearch]
     )
     const visibleDirectorySchools = useMemo(
-        () => DIRECTORY_SCHOOLS.filter((school) => matchesSearch(school, normalizedSearch)),
-        [normalizedSearch]
+        () => schools.filter((school) => matchesSearch(school, normalizedSearch)),
+        [schools, normalizedSearch]
     )
 
     const searchDirectory = (event) => {
@@ -126,11 +110,14 @@ const LandingPage = () => {
                     <PlatformLogo />
                 </Link>
 
-                <nav className='lx-p-public-nav' aria-label='Navegación principal'>
-                    <a href='#colegios'>Colegios</a>
-                    <a href='#como-funciona'>Cómo funciona</a>
-                    <a href='mailto:help@viboxschool.com'>Ayuda</a>
-                </nav>
+                <div className='lx-p-public-header-actions'>
+                    <nav className='lx-p-public-nav' aria-label='Navegación principal'>
+                        <a href='#colegios'>Colegios</a>
+                        <a href='#como-funciona'>Cómo funciona</a>
+                        <a href='mailto:help@viboxschool.com'>Ayuda</a>
+                    </nav>
+                    <ThemeToggle />
+                </div>
 
                 <Link className='lx-p-public-login' to='/auth'>Ingresar</Link>
             </header>
@@ -184,6 +171,8 @@ const LandingPage = () => {
                     </div>
 
                     <div className='lx-p-public-featured-grid'>
+                        {loading && <p className='lx-p-public-empty' role='status'>Cargando colegios aliados...</p>}
+                        {!loading && loadError && <p className='lx-p-public-empty' role='alert'>{loadError}</p>}
                         {visibleFeaturedSchools.map((school) => (
                             <article className='lx-p-public-featured-card' key={school.code}>
                                 <div
@@ -205,7 +194,9 @@ const LandingPage = () => {
                                         {school.city}{school.levelsOffered ? ` · ${school.levelsOffered}` : ''}
                                     </p>
                                     <div className='lx-p-public-school-availability'>
-                                        <span className='lx-p-public-open-badge'>Matrículas abiertas</span>
+                                        <span className={school.enrollmentOpen ? 'lx-p-public-open-badge' : 'lx-p-public-closed-badge'}>
+                                            {school.enrollmentOpen ? 'Matrículas abiertas' : 'Matrículas cerradas'}
+                                        </span>
                                         {school.availablePlaces != null && <span>{school.availablePlaces} cupos</span>}
                                     </div>
                                     <Link className='lx-p-public-school-action' to={`/school/${encodeURIComponent(school.code)}`}>
@@ -215,7 +206,7 @@ const LandingPage = () => {
                             </article>
                         ))}
                     </div>
-                    {visibleFeaturedSchools.length === 0 && (
+                    {!loading && !loadError && visibleFeaturedSchools.length === 0 && (
                         <p className='lx-p-public-empty'>No encontramos colegios aliados para “{search}”.</p>
                     )}
                 </section>
@@ -230,6 +221,8 @@ const LandingPage = () => {
                     </div>
 
                     <div className='lx-p-public-directory-grid'>
+                        {loading && <p className='lx-p-public-empty' role='status'>Cargando directorio...</p>}
+                        {!loading && loadError && <p className='lx-p-public-empty' role='alert'>{loadError}</p>}
                         {visibleDirectorySchools.map((school) => (
                             <Link
                                 className='lx-p-public-directory-card'
@@ -245,7 +238,7 @@ const LandingPage = () => {
                             </Link>
                         ))}
                     </div>
-                    {visibleDirectorySchools.length === 0 && (
+                    {!loading && !loadError && visibleDirectorySchools.length === 0 && (
                         <p className='lx-p-public-empty'>No encontramos colegios para “{search}”.</p>
                     )}
                 </section>

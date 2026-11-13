@@ -41,17 +41,17 @@
 }
 
 .lx-c-notification-indicator.--success {
-  background-color: #22c55e;
+  background-color: var(--lx-color-success);
 }
 
 .lx-c-notification-indicator.--error {
-  background-color: #ef4444;
+  background-color: var(--lx-color-danger);
 }
 
 .lx-c-notification-indicator.--info {
-  background-color: #3b82f6;
+  background-color: var(--lx-color-info);
 }
 
 .lx-c-notification-indicator.--warning {
-  background-color: #f97316;
+  background-color: var(--lx-color-warning);
 }

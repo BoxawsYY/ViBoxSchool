@@ -1,0 +1,27 @@
+.lx-c-theme-toggle {
+    width: 42px;
+    height: 42px;
+    flex: 0 0 42px;
+    display: inline-grid;
+    place-items: center;
+    border: 1px solid var(--lx-color-border);
+    border-radius: var(--lx-border-radius-full);
+    color: var(--lx-color-text);
+    background: var(--lx-color-background-primary);
+    cursor: pointer;
+    transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+}
+
+.lx-c-theme-toggle:hover {
+    border-color: var(--lx-color-accent);
+    background: var(--lx-color-background-secondary);
+}
+
+.lx-c-theme-toggle:focus-visible {
+    outline: 3px solid var(--lx-color-accent-dimed);
+    outline-offset: 2px;
+}
+
+.lx-c-theme-toggle .material-symbols-rounded {
+    font-size: 21px;
+}

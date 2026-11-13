@@ -6,7 +6,7 @@
     overflow: auto;
     user-select: none;
     position: relative;
-    box-shadow: rgba(0, 0, 0, 0.1) 0 0 1rem, var(--lx-color-border) 0 -1px 1px inset;
+    box-shadow: var(--lx-shadow-md);
 }
 
 [data-theme="dark"] .lx-c-user-session-card {
@@ -23,8 +23,7 @@
 .lx-c-user-session-card-header {
     width: 100%;
     height: 120px;
-    background-color: var(--lx-background-image-base);
-    background-image: var(--lx-background-image);
+    background: linear-gradient(135deg, var(--lx-color-accent-dimed), var(--lx-color-background-secondary));
     background-size: 100%;
     background-attachment: fixed;
     background-size: cover;

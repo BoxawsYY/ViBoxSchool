@@ -23,7 +23,7 @@ body:has(.lx-p-public),
     height: 72px;
     padding-inline: max(48px, calc((100% - 1350px) / 2));
     display: grid;
-    grid-template-columns: 1fr auto 1fr;
+    grid-template-columns: auto 1fr auto;
     align-items: center;
     border-bottom: 1px solid var(--lx-color-border);
     background: var(--lx-color-surface);
@@ -46,6 +46,13 @@ body:has(.lx-p-public),
     display: flex;
     align-items: center;
     gap: 34px;
+}
+
+.lx-p-public-header-actions {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
 }
 
 .lx-p-public-nav a,
@@ -371,13 +378,19 @@ body:has(.lx-p-public),
     font-size: 13px;
 }
 
-.lx-p-public-open-badge {
+.lx-p-public-open-badge,
+.lx-p-public-closed-badge {
     padding: 4px 11px;
     border-radius: var(--lx-border-radius-full);
     color: var(--lx-color-success);
     background: var(--lx-color-success-bg);
     font-size: 12px;
     font-weight: 600;
+}
+
+.lx-p-public-closed-badge {
+    color: var(--lx-color-danger);
+    background: var(--lx-color-danger-bg);
 }
 
 .lx-p-public-school-action {
@@ -587,6 +600,10 @@ body:has(.lx-p-public),
         padding-inline: 28px;
     }
 
+    .lx-p-public-header-actions {
+        gap: 14px;
+    }
+
     .lx-p-public-featured-grid {
         gap: 16px;
     }
@@ -611,7 +628,7 @@ body:has(.lx-p-public),
 @media (max-width: 700px) {
     .lx-p-public-header {
         height: 66px;
-        grid-template-columns: 1fr auto;
+        grid-template-columns: 1fr auto auto;
     }
 
     .lx-p-public-brand {
@@ -620,6 +637,10 @@ body:has(.lx-p-public),
 
     .lx-p-public-nav {
         display: none;
+    }
+
+    .lx-p-public-header-actions {
+        justify-content: flex-end;
     }
 
     .lx-p-public-login {

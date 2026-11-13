@@ -1,0 +1,491 @@
+.lx-p-school-management {
+    min-height: 100%;
+    padding: 28px;
+    color: var(--lx-color-public-text);
+    background: var(--lx-color-public-background);
+}
+
+.lx-p-school-management-header {
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.lx-p-school-management-header h1 {
+    margin: 0;
+    font-size: var(--lx-font-size-display);
+}
+
+.lx-p-school-management-header p {
+    margin: 4px 0 0;
+    color: var(--lx-color-public-text-muted);
+}
+
+.lx-p-school-management-create-link,
+.lx-p-school-management-actions button {
+    min-height: 48px;
+    padding: 12px 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--lx-color-accent);
+    border-radius: var(--lx-border-radius-s);
+    color: var(--lx-color-white);
+    background: var(--lx-color-accent);
+    font: inherit;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.lx-p-school-management-filters {
+    margin-bottom: 20px;
+    display: grid;
+    grid-template-columns: minmax(240px, 1fr) minmax(170px, .34fr) minmax(170px, .34fr);
+    gap: 12px;
+}
+
+.lx-p-school-management-filters label,
+.lx-p-school-management-search {
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid var(--lx-color-public-border);
+    border-radius: var(--lx-border-radius-s);
+    background: var(--lx-color-public-surface);
+}
+
+.lx-p-school-management-search {
+    padding: 0 14px;
+    color: var(--lx-color-public-text-muted);
+}
+
+.lx-p-school-management-search input,
+.lx-p-school-management-filters select {
+    width: 100%;
+    height: 100%;
+    min-height: 46px;
+    padding: 0 12px;
+    border: 0;
+    border-radius: inherit;
+    color: var(--lx-color-public-text);
+    background: transparent;
+    font: inherit;
+}
+
+.lx-p-school-management-search input {
+    padding-left: 0;
+}
+
+.lx-p-school-management-search input:focus,
+.lx-p-school-management-filters select:focus {
+    outline: none;
+}
+
+.lx-p-school-management-search:focus-within,
+.lx-p-school-management-filters label:focus-within {
+    outline: 3px solid var(--lx-color-public-accent-background);
+}
+
+.lx-p-school-management-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.65fr) minmax(340px, .95fr);
+    align-items: start;
+    gap: 20px;
+}
+
+.lx-p-school-management-table-card,
+.lx-p-school-management-form-card {
+    min-width: 0;
+    padding: 18px;
+    border: 1px solid var(--lx-color-public-border);
+    border-radius: var(--lx-border-radius-m);
+    background: var(--lx-color-public-surface);
+    box-shadow: var(--lx-shadow-sm);
+}
+
+.lx-p-school-management-table-scroll {
+    overflow-x: auto;
+    border: 1px solid var(--lx-color-public-border);
+    border-radius: var(--lx-border-radius-s);
+}
+
+.lx-p-school-management table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.lx-p-school-management th,
+.lx-p-school-management td {
+    padding: 14px 12px;
+    border-bottom: 1px solid var(--lx-color-public-border);
+    font-size: var(--lx-font-size-small);
+}
+
+.lx-p-school-management th {
+    color: var(--lx-color-public-text-muted);
+    background: var(--lx-color-public-accent-background);
+    font-size: var(--lx-font-size-xs);
+    text-transform: uppercase;
+}
+
+.lx-p-school-management tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.lx-p-school-management-school {
+    min-width: 185px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.lx-p-school-management-school > span:last-child {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.lx-p-school-management-school strong {
+    font-size: var(--lx-font-size-small);
+}
+
+.lx-p-school-management-school small {
+    padding: 4px 8px;
+    border-radius: var(--lx-border-radius-full);
+    color: var(--lx-color-accent-dark);
+    background: var(--lx-color-public-accent-background);
+    font-size: var(--lx-font-size-xs);
+    font-weight: 700;
+}
+
+.lx-p-school-management-monogram {
+    width: 36px;
+    height: 36px;
+    flex: 0 0 36px;
+    display: grid;
+    place-items: center;
+    border-radius: var(--lx-border-radius-circle);
+    color: var(--lx-color-white);
+    background: var(--school-brand-color);
+    font-size: var(--lx-font-size-xs);
+    font-weight: 700;
+}
+
+.lx-p-school-management-status {
+    padding: 5px 9px;
+    border-radius: var(--lx-border-radius-full);
+    color: var(--lx-color-success);
+    background: var(--lx-color-success-bg);
+    font-size: var(--lx-font-size-xs);
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.lx-p-school-management-status--onboarding {
+    color: var(--lx-color-warning);
+    background: var(--lx-color-warning-bg);
+}
+
+.lx-p-school-management-status--suspended {
+    color: var(--lx-color-danger);
+    background: var(--lx-color-danger-bg);
+}
+
+.lx-p-school-management-row-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.lx-p-school-management-row-actions button {
+    width: 36px;
+    height: 36px;
+    display: inline-grid;
+    place-items: center;
+    border: 0;
+    border-radius: var(--lx-border-radius-xs);
+    color: var(--lx-color-public-text-muted);
+    background: transparent;
+    cursor: pointer;
+}
+
+.lx-p-school-management-row-actions button:hover,
+.lx-p-school-management-row-actions button:focus-visible {
+    color: var(--lx-color-accent-dark);
+    background: var(--lx-color-public-accent-background);
+}
+
+.lx-p-school-management-row-actions button.lx-p-school-management-status-action {
+    width: auto;
+    display: inline-flex;
+    gap: 5px;
+    padding: 0 8px;
+    font-size: var(--lx-font-size-xs);
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.lx-p-school-management-row-actions button.lx-p-school-management-deactivate {
+    color: var(--lx-color-danger);
+}
+
+.lx-p-school-management-row-actions button.lx-p-school-management-deactivate:hover,
+.lx-p-school-management-row-actions button.lx-p-school-management-deactivate:focus-visible {
+    color: var(--lx-color-background);
+    background: var(--lx-color-danger);
+}
+
+.lx-p-school-management-row-actions button.lx-p-school-management-status-action.is-reactivate {
+    color: var(--lx-color-success);
+    background: var(--lx-color-success-dimed);
+}
+
+.lx-p-school-management-row-actions button.lx-p-school-management-status-action.is-reactivate:hover,
+.lx-p-school-management-row-actions button.lx-p-school-management-status-action.is-reactivate:focus-visible {
+    color: var(--lx-color-background);
+    background: var(--lx-color-success);
+}
+
+.lx-p-school-management-row-actions button:disabled {
+    cursor: not-allowed;
+    opacity: .55;
+}
+
+.lx-p-school-management-details {
+    margin: 0;
+    padding: 18px 22px;
+    display: grid;
+    gap: 14px;
+}
+
+.lx-p-school-management-details > div {
+    display: grid;
+    grid-template-columns: minmax(130px, .7fr) 1fr;
+    gap: 12px;
+    align-items: center;
+}
+
+.lx-p-school-management-details dt {
+    color: var(--lx-color-public-text-muted);
+    font-size: var(--lx-font-size-small);
+    font-weight: 600;
+}
+
+.lx-p-school-management-details dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+.lx-p-school-management-detail-color {
+    width: 16px;
+    height: 16px;
+    margin-right: 8px;
+    display: inline-block;
+    vertical-align: middle;
+    border-radius: var(--lx-border-radius-circle);
+    background: var(--school-brand-color);
+}
+
+.lx-p-school-management-form-card h2 {
+    margin: 0 0 18px;
+    font-size: var(--lx-font-size-h3);
+}
+
+.lx-p-school-management-form-card form {
+    display: grid;
+    gap: 16px;
+}
+
+.lx-p-school-management-form-card form > label,
+.lx-p-school-management-fields label {
+    display: grid;
+    gap: 7px;
+    font-size: var(--lx-font-size-small);
+    font-weight: 600;
+}
+
+.lx-p-school-management-form-card input:not([type='checkbox']):not([type='color']) {
+    width: 100%;
+    min-height: 46px;
+    padding: 10px 12px;
+    border: 1px solid var(--lx-color-public-border);
+    border-radius: var(--lx-border-radius-s);
+    color: var(--lx-color-public-text);
+    background: var(--lx-color-public-surface);
+    font: inherit;
+}
+
+.lx-p-school-management-fields {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.lx-p-school-management-colors {
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+.lx-p-school-management-colors legend {
+    margin-bottom: 9px;
+    font-size: var(--lx-font-size-small);
+    font-weight: 600;
+}
+
+.lx-p-school-management-colors > div {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.lx-p-school-management-colors button,
+.lx-p-school-management-custom-color {
+    width: 34px;
+    height: 34px;
+    border: 2px solid var(--lx-color-public-surface);
+    border-radius: var(--lx-border-radius-circle);
+    background: var(--school-brand-color);
+    box-shadow: 0 0 0 1px var(--lx-color-public-border);
+    cursor: pointer;
+}
+
+.lx-p-school-management-colors button.is-selected {
+    box-shadow: 0 0 0 2px var(--lx-color-public-text);
+}
+
+.lx-p-school-management-custom-color {
+    position: relative;
+    overflow: hidden;
+    background: conic-gradient(red, yellow, lime, aqua, blue, magenta, red);
+}
+
+.lx-p-school-management-custom-color input {
+    position: absolute;
+    inset: -8px;
+    width: 50px;
+    height: 50px;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.lx-p-school-management-partner {
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.lx-p-school-management-partner span {
+    display: grid;
+    gap: 4px;
+}
+
+.lx-p-school-management-partner small {
+    color: var(--lx-color-public-text-muted);
+    font-weight: 400;
+}
+
+.lx-p-school-management-partner input {
+    width: 42px;
+    height: 22px;
+    accent-color: var(--lx-color-accent);
+}
+
+.lx-p-school-management-defaults {
+    margin: -4px 0 0;
+    color: var(--lx-color-public-text-muted);
+    font-size: var(--lx-font-size-xs);
+    line-height: 1.5;
+}
+
+.lx-p-school-management-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.lx-p-school-management-actions .lx-p-school-management-cancel {
+    border-color: var(--lx-color-accent);
+    color: var(--lx-color-accent-dark);
+    background: transparent;
+}
+
+.lx-p-school-management-actions button:disabled {
+    cursor: wait;
+    opacity: .7;
+}
+
+.lx-p-school-management-alert,
+.lx-p-school-management-success {
+    margin: 0;
+    padding: 10px 12px;
+    border-radius: var(--lx-border-radius-xs);
+    color: var(--lx-color-danger);
+    background: var(--lx-color-danger-bg);
+    font-size: var(--lx-font-size-small);
+}
+
+.lx-p-school-management-success {
+    color: var(--lx-color-success);
+    background: var(--lx-color-success-bg);
+}
+
+.lx-p-school-management-message {
+    padding: 24px;
+    color: var(--lx-color-public-text-muted);
+    text-align: center;
+}
+
+.lx-p-school-management-message button {
+    color: var(--lx-color-accent-dark);
+}
+
+.lx-p-school-management-no-results {
+    padding: 32px !important;
+    color: var(--lx-color-public-text-muted);
+    text-align: center;
+}
+
+.lx-p-school-management-visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    clip-path: inset(50%);
+}
+
+@media (max-width: 1100px) {
+    .lx-p-school-management-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 700px) {
+    .lx-p-school-management {
+        padding: 20px 14px;
+    }
+
+    .lx-p-school-management-header {
+        align-items: flex-start;
+    }
+
+    .lx-p-school-management-header h1 {
+        font-size: var(--lx-font-size-h1);
+    }
+
+    .lx-p-school-management-filters {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .lx-p-school-management-search {
+        grid-column: 1 / -1;
+    }
+}

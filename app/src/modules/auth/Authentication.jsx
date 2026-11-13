@@ -1,26 +1,26 @@
 import './Authentication.css'
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../core/contexts/AuthContext'
 import { useTheme } from '../../core/hooks/useTheme'
 import Button from '../../core/components/Button/Button'
 import LoginForm from './LoginForm'
-import RegisterForm from './RegisterForm'
 
 const Authentication = () => {
   const navigate = useNavigate()
-  const { session, signIn, signUp } = useAuth()
+  const { session, signIn, signInDemo } = useAuth()
   const { isDarkTheme, setThemePreference } = useTheme()
-  const [authenticationMode, setAuthenticationMode] = useState('login')
-
   useEffect(() => {
     if (session) {
-      if (session.user?.roles?.includes('Admin')) {
-        navigate('/panel')
+      const roles = Array.isArray(session.user?.roles) ? session.user.roles : []
+      const homeByRole = {
+        Admin: '/admin/schools',
+        Rector: '/panel',
+        Secretary: '/panel',
+        Guardian: '/panel'
       }
-      else {
-        navigate('/panel')
-      }
+      const destination = roles.map((role) => homeByRole[role]).find(Boolean) || '/panel'
+      navigate(destination, { replace: true })
     }
   }, [session, navigate])
 
@@ -36,15 +36,9 @@ const Authentication = () => {
       </div>
 
       <LoginForm
-        authenticationMode={authenticationMode}
-        setAuthenticationMode={setAuthenticationMode}
+        authenticationMode='login'
         signIn={signIn}
-      />
-
-      <RegisterForm
-        authenticationMode={authenticationMode}
-        setAuthenticationMode={setAuthenticationMode}
-        signUp={signUp}
+        signInDemo={signInDemo}
       />
 
     </div>
