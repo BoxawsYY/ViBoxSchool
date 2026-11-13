@@ -8,8 +8,8 @@
 .lx-c-tooltip-box {
   position: absolute;
   transform: translateX(-50%);
-  background: #303030;
-  color: #fff;
+  background: var(--lx-color-background-ternary);
+  color: var(--lx-color-text);
   padding: 5px 10px;
   border-radius: var(--lx-border-radius-xxs);
   font-size: 12px;
@@ -19,7 +19,7 @@
   pointer-events: none;
   opacity: 0;
   animation: fadeIn 0.18s ease-out forwards;
-  box-shadow: 0 5px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--lx-shadow-sm);
 }
 
 /* Animación suave */
@@ -43,7 +43,7 @@
   transform: translateX(-50%) rotateZ(45deg);
   width: 15px;
   height: 15px;
-  background: #303030;
+  background: var(--lx-color-background-ternary);
   z-index: -1;
   border-radius: var(--lx-border-radius-xxxs);
 }
