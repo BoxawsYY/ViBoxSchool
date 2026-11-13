@@ -38,21 +38,21 @@
 }
 
 .lx-c-permissions-type.--assign {
-    background: #00c3ff20;
-    color: #00c3ff;
-    border-color: #00c3ff20;
+    background: var(--lx-color-info-dimed);
+    color: var(--lx-color-info);
+    border-color: var(--lx-color-info-dimed);
 }
 
 .lx-c-permissions-type.--check {
-    background: #dd00ff20;
-    color: #dd00ff;
-    border-color: #dd00ff20;
+    background: var(--lx-color-accent-dimed);
+    color: var(--lx-color-accent-dark);
+    border-color: var(--lx-color-accent-dimed);
 }
 
 .lx-c-permissions-type.--revoke {
-    background: #ff880020;
-    color: #ff8800;
-    border-color: #ff880020;
+    background: var(--lx-color-warning-dimed);
+    color: var(--lx-color-warning);
+    border-color: var(--lx-color-warning-dimed);
 }
 
 .lx-c-permissions-icon.--read {
@@ -72,15 +72,15 @@
 }
 
 .lx-c-permissions-icon.--assign {
-    color: #00c3ff;
+    color: var(--lx-color-info);
 }
 
 .lx-c-permissions-icon.--check {
-    color: #dd00ff;
+    color: var(--lx-color-accent);
 }
 
 .lx-c-permissions-icon.--revoke {
-    color: #ff8800;
+    color: var(--lx-color-warning);
 }
 
 .lx-c-permissions-icon.--access {

@@ -8,6 +8,18 @@ import ErrorMiddleware from './core/middlewares/Error.middleware.js'
 import CoreRouter from './core/router/Core.router.js'
 import { Database } from './core/orm/database/Database.js'
 import './schools/entities/School.entity.js'
+import './enrollments/entities/Student.entity.js'
+import './enrollments/entities/Guardian.entity.js'
+import './enrollments/entities/StudentGuardian.entity.js'
+import './enrollments/entities/EnrollmentPeriod.entity.js'
+import './enrollments/entities/Grade.entity.js'
+import './enrollments/entities/GradePeriod.entity.js'
+import './enrollments/entities/DocumentType.entity.js'
+import './enrollments/entities/GradeDocumentType.entity.js'
+import './enrollments/entities/Enrollment.entity.js'
+import './enrollments/entities/EnrollmentDocument.entity.js'
+import './enrollments/entities/EnrollmentDraft.entity.js'
+import './enrollments/entities/EnrollmentDraftDocument.entity.js'
 
 dotenv.config()
 

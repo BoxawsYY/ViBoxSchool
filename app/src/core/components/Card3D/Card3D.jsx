@@ -1,4 +1,5 @@
 import { useRef } from 'react'
+import PropTypes from 'prop-types'
 import './Card3D.css'
 
 const Card3D = ({ width = '300px', height = '200px', children }) => {
@@ -19,9 +20,8 @@ const Card3D = ({ width = '300px', height = '200px', children }) => {
     const rotateY = (x - centerX) / 15
 
     card.style.transform = `scale(0.9) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`
-    light.style.background = `
-      radial-gradient(circle at ${x}px ${y}px, rgba(255,255,255,0.3), transparent 80%)
-    `
+    light.style.setProperty('--lx-card-light-x', `${x}px`)
+    light.style.setProperty('--lx-card-light-y', `${y}px`)
   }
 
   const handleMouseLeave = () => {
@@ -29,9 +29,8 @@ const Card3D = ({ width = '300px', height = '200px', children }) => {
     const light = lightRef.current
 
     card.style.transform = 'rotateX(0deg) rotateY(0deg)'
-    light.style.background = `
-      radial-gradient(circle at 50% 50%, rgba(255,255,255,0.3), transparent 80%)
-    `
+    light.style.setProperty('--lx-card-light-x', '50%')
+    light.style.setProperty('--lx-card-light-y', '50%')
   }
 
   return (
@@ -51,6 +50,12 @@ const Card3D = ({ width = '300px', height = '200px', children }) => {
       </div>
     </div>
   )
+}
+
+Card3D.propTypes = {
+  width: PropTypes.string,
+  height: PropTypes.string,
+  children: PropTypes.node
 }
 
 export default Card3D

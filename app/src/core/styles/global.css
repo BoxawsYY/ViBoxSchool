@@ -185,7 +185,7 @@ body, #root {
     width: fit-content;
     max-width: 400px;
     font-size: 12px;
-    background: #202020;
+    background: var(--lx-color-background-primary);
     position: fixed;
     right: 20px;
     border-radius: var(--lx-border-radius-s);
@@ -197,7 +197,7 @@ body, #root {
     display: grid;
     grid-template-columns: auto 1fr;
     --notify-card-animation-duration: 2s;
-    box-shadow: rgba(255, 255, 255, 0.1) 0px 1px 1px 0px inset;
+    box-shadow: var(--lx-shadow-sm);
 }
 
 .notify-card:hover {
@@ -355,18 +355,16 @@ select {
   -webkit-appearance: none;
   -moz-appearance: none;
 
-  background-color: #1e1e1e;
-  color: #ffffff;
-  border: 1px solid #444;
+  background-color: var(--lx-color-background-primary);
+  color: var(--lx-color-text);
+  border: 1px solid var(--lx-color-border);
   padding: 8px;
   border-radius: 6px;
 }
 
-@media (prefers-color-scheme: dark) {
-  select, option {
-    background-color: #1e1e1e;
-    color: #ffffff;
-  }
+select option {
+  color: var(--lx-color-text);
+  background-color: var(--lx-color-background-primary);
 }
 
 .lx-forms-input-group input[type="color"]::-webkit-color-swatch {
@@ -647,7 +645,7 @@ select {
   height: 100%;
   z-index: 100;
   left: 0;
-  background: linear-gradient(90deg, #eeeeee 25%, #dddddd 37%, #eeeeee 63%);
+  background: linear-gradient(90deg, var(--lx-color-skeleton-start) 25%, var(--lx-color-skeleton-middle) 37%, var(--lx-color-skeleton-start) 63%);
   background-size: 400% 100%;
   animation: shimmer 4s ease infinite;
   border-radius: 4px;
@@ -677,7 +675,7 @@ select {
     height: 100%;
     z-index: 100;
     left: 0;
-    background: linear-gradient(90deg, #eeeeee 25%, #dddddd 37%, #eeeeee 63%);
+    background: linear-gradient(90deg, var(--lx-color-skeleton-start) 25%, var(--lx-color-skeleton-middle) 37%, var(--lx-color-skeleton-start) 63%);
     background-size: 400% 100%;
     animation: shimmer 4s ease infinite;
     border-radius: var(--lx-border-radius-m);
