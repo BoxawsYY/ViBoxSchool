@@ -31,6 +31,9 @@ export class School {
     email: string
 
     @Column({ type: 'string' })
+    secretaryEmail: string
+
+    @Column({ type: 'string' })
     officeHours: string
 
     @Column({ type: 'string' })
