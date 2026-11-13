@@ -14,7 +14,11 @@
     inset: 0;
     z-index: 100;
     pointer-events: none;
-    background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.3), transparent 80%);
+    background: radial-gradient(
+        circle at var(--lx-card-light-x, 50%) var(--lx-card-light-y, 50%),
+        color-mix(in srgb, var(--lx-color-surface) 30%, transparent),
+        transparent 80%
+    );
     transition: background 0.2s ease;
 }
 
