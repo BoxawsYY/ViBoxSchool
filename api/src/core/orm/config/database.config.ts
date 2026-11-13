@@ -1,5 +1,6 @@
 import dotenv from 'dotenv'
 dotenv.config()
+dotenv.config({ path: '.env.local' })
 
 export const DatabaseConfig = {
     host: process.env.DB_HOST || 'localhost',
