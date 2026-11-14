@@ -32,6 +32,25 @@ export class Database {
         return this.pool.query(sql, params)
     }
 
+    public async transaction<T>(callback: (client: pg.PoolClient) => Promise<T>): Promise<T> {
+        const client = await this.pool.connect()
+        try {
+            await client.query('BEGIN')
+            const result = await callback(client)
+            await client.query('COMMIT')
+            return result
+        } catch (error) {
+            try {
+                await client.query('ROLLBACK')
+            } catch (rollbackError) {
+                console.error('[Database] Transaction rollback failed', rollbackError)
+            }
+            throw error
+        } finally {
+            client.release()
+        }
+    }
+
     private getDbType(colConfig: ColumnConfig): string {
         if (colConfig.type) {
             const mappings: Record<string, string> = {
@@ -40,7 +59,10 @@ export class Database {
                 'boolean': 'BOOLEAN',
                 'date': 'TIMESTAMP',
                 'uuid': 'UUID',
-                'text': 'TEXT'
+                'text': 'TEXT',
+                'decimal': 'NUMERIC(12,2)',
+                'bigint': 'BIGINT',
+                'json': 'JSONB'
             }
             return mappings[colConfig.type] || 'TEXT'
         }

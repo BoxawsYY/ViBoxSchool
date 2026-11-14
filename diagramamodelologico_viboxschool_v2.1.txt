@@ -1,0 +1,495 @@
+// =====================================================================
+// ViBoxSchool · MODELO LÓGICO PARA PRESENTACIÓN · V2.0 (multi-colegio)
+// Versión simplificada del modelo físico (01_schema_v2.sql) para el diagrama:
+//  - Sin columnas de auditoría de trazabilidad (fechas y usuarios de creación, modificación y borrado).
+//  - Cada tabla con datos de un colegio referencia a Schools mediante schoolId.
+//  - Las llaves foráneas son simples (columna > Tabla.id). El modelo físico además las
+//    refuerza con llaves compuestas (schoolId, id) para impedir cruces entre colegios.
+// =====================================================================
+
+Project ViBoxSchool_V2 {
+  database_type: 'PostgreSQL'
+  Note: '''
+    Sistema Web de Matrículas y Pensiones · Multi-colegio.
+    - Un usuario = un rol (Users.roleId). El personal del colegio (Rector, Secretaría) pertenece a un colegio (Users.schoolId).
+    - La planilla de pagos NO es tabla: es un reporte sobre Payments.
+    - isDeleted = borrado lógico.
+  '''
+}
+
+// Indicadores de estado del registro (los únicos campos comunes que se muestran)
+TablePartial Estado {
+  isActive  boolean [not null, default: true]
+  isDeleted boolean [not null, default: false, note: 'Borrado lógico']
+}
+
+// =====================================================================
+// 1. ROLES, USUARIOS Y COLEGIOS
+// =====================================================================
+Table Schools {
+  id            uuid    [pk]
+  code          text    [not null, unique, note: 'Identificador corto del colegio (URL del directorio)']
+  name          text    [not null]
+  nit           text    [not null, unique]
+  city          text    [not null]
+  department    text
+  address       text
+  phone         text
+  email         text
+  officeHours   text
+  levelsOffered text    [note: 'Ej.: Preescolar a 11°']
+  description   text
+  logoUrl       text
+  brandColor    text    [note: 'Color institucional HEX']
+  isPartner     boolean [not null, default: false, note: 'Colegio aliado destacado en la landing']
+  status        text    [not null, default: 'onboarding', note: 'onboarding | active | suspended']
+  ~Estado
+}
+
+Table Roles {
+  id          uuid [pk]
+  name        text [not null, unique, note: 'Admin | Rector | Secretaria | Acudiente']
+  alias       text [not null]
+  description text
+  scope       text [not null, default: 'family', note: 'platform | school | family']
+  status      text [not null, default: 'active', note: 'active | inactive']
+  ~Estado
+}
+
+Table Permissions {
+  id          uuid [pk]
+  name        text [not null, unique]
+  alias       text [not null]
+  description text
+  type        text [not null, note: 'Read | Create | Update | Delete | Assign | Check | Revoke | Access']
+  status      text [not null, default: 'active', note: 'active | inactive']
+  ~Estado
+}
+
+Table RolesPermissions {
+  roleId       uuid [not null, ref: > Roles.id]
+  permissionId uuid [not null, ref: > Permissions.id]
+  status       text [not null, default: 'active', note: 'active | inactive']
+  ~Estado
+
+  indexes {
+    (roleId, permissionId) [pk] // Llave compuesta (tabla intermedia N:M)
+  }
+}
+
+// Un solo rol por usuario. schoolId: solo para personal del colegio (Rector, Secretaría).
+Table Users {
+  id       uuid [pk]
+  schoolId uuid [ref: > Schools.id, note: 'NULL para Administrador y acudientes']
+  roleId   uuid [not null, ref: > Roles.id]
+  name     text [not null]
+  email    text [not null, unique]
+  password text [not null, note: 'Almacenada cifrada (hash)']
+}
+
+Table Guardians {
+  id       uuid [pk]
+  userId   uuid [not null, unique, ref: - Users.id]
+  whatsapp text
+  phone    text
+  address  text
+  status   text [not null, default: 'active', note: 'active | inactive']
+  ~Estado
+}
+
+// =====================================================================
+// 2. ESTUDIANTES
+// =====================================================================
+Table Students {
+  id             uuid [pk]
+  schoolId       uuid [not null, ref: > Schools.id]
+  code           text
+  documentType   text [not null]
+  documentNumber text [not null]
+  name           text [not null]
+  gender         text [note: 'F | M | O']
+  birthDate      date
+  phone          text
+  address        text
+  previousSchool text
+  status         text [not null, default: 'active', note: 'active | inactive']
+  ~Estado
+}
+
+Table StudentGuardians {
+  schoolId             uuid [not null, ref: > Schools.id]
+  studentId            uuid [not null, ref: > Students.id]
+  guardianId           uuid [not null, ref: > Guardians.id]
+  relationship         text [not null, note: 'mother | father | guardian | other']
+  isPaymentResponsible boolean [not null, default: false]
+  status               text [not null, default: 'active', note: 'active | inactive']
+  ~Estado
+
+  indexes {
+    (studentId, guardianId) [pk] // Llave compuesta (tabla intermedia N:M)
+  }
+}
+
+// =====================================================================
+// 3. PARAMETRIZACIÓN ACADÉMICO-FINANCIERA (Rector · RF-26 a RF-30)
+// =====================================================================
+Table EnrollmentPeriods {
+  id           uuid    [pk]
+  schoolId     uuid    [not null, ref: > Schools.id]
+  academicYear integer [not null]
+  startDate    date    [not null]
+  endDate      date    [not null]
+  definedById  uuid    [not null, ref: > Users.id, note: 'Rector que lo define']
+  status       text    [not null, default: 'open', note: 'open | closed']
+  ~Estado
+}
+
+Table Grades {
+  id        uuid     [pk]
+  schoolId  uuid     [not null, ref: > Schools.id]
+  code      text     [not null]
+  name      text     [not null]
+  sortOrder smallint [not null, default: 0]
+  status    text     [not null, default: 'active', note: 'active | inactive']
+  ~Estado
+}
+
+Table GradePeriods {
+  id               uuid          [pk]
+  schoolId         uuid          [not null, ref: > Schools.id]
+  gradeId          uuid          [not null, ref: > Grades.id]
+  periodId         uuid          [not null, ref: > EnrollmentPeriods.id]
+  maxCapacity      integer       [not null, note: 'Cupo máximo del grado']
+  enrollmentFee    numeric(12,2) [not null, note: 'Valor de la matrícula']
+  tuitionFee       numeric(12,2) [not null, note: 'Valor de la pensión']
+  billingFrequency text          [not null, note: 'monthly | bimonthly | quarterly | annual']
+  installmentCount smallint      [not null, default: 10, note: 'Nº de cuotas de pensión']
+  status           text          [not null, default: 'active', note: 'active | inactive']
+  ~Estado
+}
+
+Table LateFeeSettings {
+  id             uuid          [pk]
+  schoolId       uuid          [not null, ref: > Schools.id]
+  periodId       uuid          [not null, ref: > EnrollmentPeriods.id]
+  definedById    uuid          [not null, ref: > Users.id]
+  surchargeType  text          [not null, note: 'percentage | fixed']
+  surchargeValue numeric(12,2) [not null]
+  graceDays      integer       [not null, default: 0]
+  dueDay         smallint      [not null, note: 'Día límite de pago de cada mes']
+  status         text          [not null, default: 'active', note: 'active | inactive']
+  ~Estado
+}
+
+// =====================================================================
+// 4. REQUISITOS DOCUMENTALES (RF-05)
+// =====================================================================
+Table DocumentTypes {
+  id              uuid    [pk]
+  schoolId        uuid    [not null, ref: > Schools.id]
+  name            text    [not null]
+  description     text
+  allowedMimeType text    [not null, note: 'application/pdf | image/jpeg']
+  maxSizeBytes    bigint  [not null, note: 'PDF máx. 5 MB · JPG máx. 2 MB']
+  minWidthPx      integer [note: 'Solo fotografías']
+  minHeightPx     integer
+  maxWidthPx      integer
+  maxHeightPx     integer
+  status          text    [not null, default: 'active', note: 'active | inactive']
+  ~Estado
+}
+
+Table GradeDocumentTypes {
+  schoolId       uuid    [not null, ref: > Schools.id]
+  gradeId        uuid    [not null, ref: > Grades.id]
+  documentTypeId uuid    [not null, ref: > DocumentTypes.id]
+  isRequired     boolean [not null, default: true]
+  status         text    [not null, default: 'active', note: 'active | inactive']
+  ~Estado
+
+  indexes {
+    (gradeId, documentTypeId) [pk] // Llave compuesta (tabla intermedia N:M)
+  }
+}
+
+// =====================================================================
+// 5. MATRÍCULA / EXPEDIENTE (RF-03 a RF-15)
+// =====================================================================
+Table EnrollmentStatuses {
+  code      text     [pk, note: 'pending | in_correction | documents_approved | enrolled']
+  label     text     [not null, note: 'Pendiente | En corrección | Documentación aprobada | Matriculado']
+  sortOrder smallint [not null]
+  status    text     [not null, default: 'active', note: 'active | inactive']
+  ~Estado
+}
+
+Table Enrollments {
+  id             uuid          [pk]
+  schoolId       uuid          [not null, ref: > Schools.id]
+  fileNumber     text          [not null, note: 'Nº de expediente (automático)']
+  studentId      uuid          [not null, ref: > Students.id]
+  gradePeriodId  uuid          [not null, ref: > GradePeriods.id]
+  periodId       uuid          [not null, ref: > EnrollmentPeriods.id, note: 'Redundante con gradePeriodId; evita dos matrículas del mismo estudiante en un periodo']
+  registeredById uuid          [ref: > Users.id, note: 'Secretaría; NULL si la solicita el acudiente']
+  requestedAt    timestamptz   [not null]
+  enrolledAt     timestamptz
+  agreedFee      numeric(12,2) [not null, note: 'Valor de matrícula pactado']
+  status         text          [not null, default: 'pending', ref: > EnrollmentStatuses.code, note: 'Estado del expediente (RF-14)']
+  ~Estado
+
+  indexes {
+    (schoolId, fileNumber) [unique]
+    (studentId, periodId) [unique, note: 'Una matrícula por estudiante y periodo']
+  }
+}
+
+Table EnrollmentStatusHistory {
+  id           uuid [pk]
+  schoolId     uuid [not null, ref: > Schools.id]
+  enrollmentId uuid [not null, ref: > Enrollments.id]
+  fromStatus   text [ref: > EnrollmentStatuses.code]
+  toStatus     text [not null, ref: > EnrollmentStatuses.code]
+  changedById  uuid [ref: > Users.id, note: 'NULL = sistema']
+  reason       text
+  status       text [not null, default: 'active', note: 'active | inactive']
+  ~Estado
+}
+
+Table EnrollmentDocuments {
+  id             uuid    [pk]
+  schoolId       uuid    [not null, ref: > Schools.id]
+  enrollmentId   uuid    [not null, ref: > Enrollments.id]
+  documentTypeId uuid    [not null, ref: > DocumentTypes.id]
+  version        integer [not null, default: 1, note: 'Cada recarga crea una versión nueva']
+  fileUrl        text    [not null]
+  fileName       text    [not null]
+  mimeType       text    [not null, note: 'application/pdf | image/jpeg']
+  sizeBytes      bigint  [note: 'PDF máx. 5 MB · JPG máx. 2 MB']
+  widthPx        integer [note: 'Solo fotografías']
+  heightPx       integer
+  status         text    [not null, default: 'pending', note: 'pending | compliant | non_compliant | superseded']
+  reviewedById   uuid    [ref: > Users.id, note: 'Rector que verificó (RF-06)']
+  reviewedAt     timestamptz
+  ~Estado
+}
+
+Table EnrollmentObservations {
+  id                   uuid [pk]
+  schoolId             uuid [not null, ref: > Schools.id]
+  enrollmentId         uuid [not null, ref: > Enrollments.id]
+  documentId           uuid [ref: > EnrollmentDocuments.id, note: 'Documento observado (NULL = general)']
+  authorId             uuid [not null, ref: > Users.id, note: 'Rector o Secretaría']
+  "text"               text [not null]
+  notificationId       uuid [ref: > Notifications.id, note: 'Correo enviado al acudiente']
+  resolvedAt           timestamptz
+  resolvedByDocumentId uuid [ref: > EnrollmentDocuments.id, note: 'Versión corregida que la resolvió']
+  status               text [not null, default: 'open', note: 'open | resolved']
+  ~Estado
+}
+
+// =====================================================================
+// 6. PENSIÓN Y PAGOS  (la planilla de pagos es un reporte sobre Payments)
+// =====================================================================
+Table Pensions {
+  id               uuid          [pk]
+  schoolId         uuid          [not null, ref: > Schools.id]
+  enrollmentId     uuid          [not null, ref: > Enrollments.id]
+  billingMonth     date          [not null, note: 'Mes facturado']
+  dueDate          date          [not null]
+  amount           numeric(12,2) [not null]
+  lateFee          numeric(12,2) [not null, default: 0, note: 'Recargo por mora']
+  lateFeeSettingId uuid          [ref: > LateFeeSettings.id]
+  status           text          [not null, default: 'pending', note: 'pending | partial | paid | overdue']
+  ~Estado
+
+  indexes {
+    (enrollmentId, billingMonth) [unique]
+  }
+}
+
+Table Payments {
+  id                   uuid          [pk]
+  schoolId             uuid          [not null, ref: > Schools.id]
+  payerGuardianId      uuid          [not null, ref: > Guardians.id]
+  registeredById       uuid          [ref: > Users.id, note: 'Secretaría (pago en efectivo)']
+  paidAt               timestamptz   [not null]
+  totalAmount          numeric(12,2) [not null]
+  method               text          [not null, note: 'pse | cash']
+  channel              text          [not null, note: 'online | in_person']
+  transactionReference text          [note: 'Referencia PSE']
+  status               text          [not null, default: 'pending', note: 'pending | approved | rejected']
+  ~Estado
+}
+
+Table PaymentItems {
+  id            uuid          [pk]
+  schoolId      uuid          [not null, ref: > Schools.id]
+  paymentId     uuid          [not null, ref: > Payments.id]
+  concept       text          [not null, note: 'enrollment_fee | tuition | late_fee']
+  pensionId     uuid          [ref: > Pensions.id, note: 'Para tuition y late_fee']
+  enrollmentId  uuid          [ref: > Enrollments.id, note: 'Para enrollment_fee']
+  appliedAmount numeric(12,2) [not null]
+  status        text          [not null, default: 'active', note: 'active | inactive']
+  ~Estado
+}
+
+Table Receipts {
+  id           uuid        [pk]
+  schoolId     uuid        [not null, ref: > Schools.id]
+  type         text        [not null, note: 'enrollment_payment | tuition_payment | enrollment_certificate']
+  number       bigint      [not null, note: 'Consecutivo por colegio y tipo']
+  paymentId    uuid        [unique, ref: - Payments.id]
+  enrollmentId uuid        [ref: > Enrollments.id, note: 'Comprobante de matrícula']
+  issuedAt     timestamptz [not null]
+  pdfUrl       text        [not null]
+  status       text        [not null, default: 'active', note: 'active | inactive']
+  ~Estado
+
+  indexes {
+    (schoolId, type, number) [unique]
+  }
+}
+
+// Contador de consecutivos (expedientes y comprobantes) por colegio
+Table DocumentSequences {
+  schoolId     uuid    [not null, ref: > Schools.id]
+  sequenceName text    [not null]
+  sequenceYear integer [not null, default: 0]
+  lastValue    bigint  [not null, default: 0]
+  status       text    [not null, default: 'active', note: 'active | inactive']
+  ~Estado
+
+  indexes {
+    (schoolId, sequenceName, sequenceYear) [pk] // Llave compuesta (contador por colegio)
+  }
+}
+
+// =====================================================================
+// 7. NOTIFICACIONES (RF-31 a RF-38)
+// =====================================================================
+Table NotificationSettings {
+  id          uuid     [pk]
+  schoolId    uuid     [not null, ref: > Schools.id]
+  definedById uuid     [ref: > Users.id, note: 'Rector o Secretaría (RF-35)']
+  eventType   text     [not null, note: 'payment_reminder | late_payment | documents_pending | observation | payment_confirmation | enrollment_confirmation | new_enrollment_request | payment_registered | manual']
+  channel     text     [not null, note: 'email | whatsapp | internal']
+  daysBefore  smallint [note: 'Días de anticipación']
+  template    text     [not null, note: 'Plantilla del mensaje']
+  sendTime    time     [note: 'Horario de envío']
+  status      text     [not null, default: 'active', note: 'active | inactive']
+  ~Estado
+
+  indexes {
+    (schoolId, eventType, channel) [unique]
+  }
+}
+
+Table Notifications {
+  id              uuid        [pk]
+  schoolId        uuid        [not null, ref: > Schools.id]
+  recipientUserId uuid        [not null, ref: > Users.id]
+  settingId       uuid        [ref: > NotificationSettings.id]
+  eventType       text        [not null]
+  subject         text
+  message         text        [not null]
+  entityType      text        [note: 'Entidad relacionada']
+  entityId        uuid
+  isRead          boolean     [not null, default: false]
+  readAt          timestamptz
+  status          text        [not null, default: 'active', note: 'active | inactive']
+  ~Estado
+}
+
+Table NotificationDeliveries {
+  id                uuid        [pk]
+  schoolId          uuid        [not null, ref: > Schools.id]
+  notificationId    uuid        [not null, ref: > Notifications.id]
+  channel           text        [not null, note: 'email | whatsapp']
+  destination       text        [not null, note: 'Correo o teléfono']
+  status            text        [not null, default: 'pending', note: 'pending | sent | delivered | failed']
+  attempts          integer     [not null, default: 0]
+  lastAttemptAt     timestamptz
+  sentAt            timestamptz
+  deliveredAt       timestamptz
+  lastError         text
+  manualResendCount integer     [not null, default: 0, note: 'Reenvíos manuales (RF-38)']
+  lastResentById    uuid        [ref: > Users.id, note: 'Administrador que reenvió']
+  lastResentAt      timestamptz
+  ~Estado
+}
+
+// =====================================================================
+// 8. SEGURIDAD (RF-43, RF-46)
+// =====================================================================
+Table Backups {
+  id         uuid        [pk]
+  location   text        [not null]
+  sizeBytes  bigint
+  finishedAt timestamptz
+  status     text        [not null, default: 'running', note: 'running | success | failed']
+  ~Estado
+}
+
+Table AuditLogs {
+  id       uuid [pk]
+  schoolId uuid [ref: > Schools.id, note: 'NULL = acción de plataforma']
+  userId   uuid [ref: > Users.id, note: 'NULL = sistema']
+  backupId uuid [ref: > Backups.id]
+  module   text
+  action   text [not null]
+  entity   text
+  recordId text
+  ip       text
+  result   text [not null, default: 'success', note: 'success | failure | blocked']
+  oldValue jsonb
+  newValue jsonb
+  status   text [not null, default: 'active', note: 'active | inactive']
+  ~Estado
+}
+
+// =====================================================================
+// Grupos visuales (dbdiagram)
+// =====================================================================
+TableGroup Roles_Usuarios_Colegios {
+  Schools
+  Roles
+  Permissions
+  RolesPermissions
+  Users
+  Guardians
+}
+TableGroup Estudiantes {
+  Students
+  StudentGuardians
+}
+TableGroup Parametrizacion {
+  EnrollmentPeriods
+  Grades
+  GradePeriods
+  LateFeeSettings
+  DocumentTypes
+  GradeDocumentTypes
+}
+TableGroup Matricula {
+  EnrollmentStatuses
+  Enrollments
+  EnrollmentStatusHistory
+  EnrollmentDocuments
+  EnrollmentObservations
+}
+TableGroup Pensiones_y_Pagos {
+  Pensions
+  Payments
+  PaymentItems
+  Receipts
+  DocumentSequences
+}
+TableGroup Notificaciones {
+  NotificationSettings
+  Notifications
+  NotificationDeliveries
+}
+TableGroup Seguridad {
+  Backups
+  AuditLogs
+}

@@ -23,8 +23,10 @@ export const API = {
     SCHOOLS: new EndpointGroup(`${URL_BASE}/schools`, {
         DISCOVER: 'discover',
     }),
+    ENROLLMENTS: new EndpointGroup(`${URL_BASE}/enrollments`),
     AUTH: new EndpointGroup(`${URL_BASE}/auth`, {
         SIGNIN: 'login',
+        DEMO_SIGNIN: 'demo-login',
         SIGNOUT: 'logout',
         SIGNUP: 'register',
         SESSION: 'session',

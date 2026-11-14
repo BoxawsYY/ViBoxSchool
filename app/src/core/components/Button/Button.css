@@ -41,51 +41,51 @@
 
 .lx-c-button-accent {
   background-color: var(--lx-color-accent);
-  color: #fff;
+  color: var(--lx-color-white);
 }
 
 .lx-c-button-black {
   background-color: var(--lx-color-black);
-  color: #ffffff;
+  color: var(--lx-color-white);
 }
 
 .lx-c-button-white {
   background-color: var(--lx-color-white);
-  color: #000000;
-  border: 0.01rem solid #e0e0e0;
+  color: var(--lx-color-black);
+  border: var(--lx-primary-border);
 }
 
 .lx-c-button-gray {
   background-color: var(--lx-color-gray);
-  color: #fff;
+  color: var(--lx-color-white);
 }
 
 .lx-c-button-success {
-  background-color: #28a745;
-  color: #ffffff;
+  background-color: var(--lx-color-success-button);
+  color: var(--lx-color-white);
 }
 
 .lx-c-button-warning {
-  background-color: #ffc107;
-  color: #212529;
+  background-color: var(--lx-color-warning-button);
+  color: var(--lx-color-black);
 }
 
 .lx-c-button-danger {
-  background-color: #dc3545;
-  color: #ffffff;
+  background-color: var(--lx-color-danger-button);
+  color: var(--lx-color-white);
 }
 
 /* Variantes */
 .lx-c-button-solid {
   outline: none;
-  box-shadow: rgba(0, 0, 0, 0.1) 0px -2px 1px inset,
-  rgba(255, 255, 255, 0.1) 0px 1px 1px inset;
+  box-shadow: var(--lx-color-black-dimed) 0px -2px 1px inset,
+  var(--lx-color-white-dimed) 0px 1px 1px inset;
 }
 
 .lx-c-button-solid:hover {
   opacity: 0.7;
-  box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 0px inset,
-  rgba(255, 255, 255, 0.1) 0px 0px 0px inset;
+  box-shadow: var(--lx-color-black-dimed) 0px 0px 0px inset,
+  var(--lx-color-white-dimed) 0px 0px 0px inset;
 }
 
 .lx-c-button-bordered {
@@ -274,8 +274,8 @@
 
 /* Indicador de carga */
 .lx-c-button-solid .lx-c-button-loader-spinner {
-  border: 2px solid rgba(255, 255, 255, 0.6);
-  border-top: 2px solid #ffffff;
+  border: 2px solid var(--lx-color-white-dimed);
+  border-top: 2px solid var(--lx-color-white);
   border-radius: var(--lx-border-radius-circle);
   animation: loading 1s linear infinite;
   will-change: transform;

@@ -12,18 +12,14 @@
     width: 100%;
     max-width: 200px;
     aspect-ratio: 1;
-    background: rgba(var(--lx-inverse), .075);
+    background: var(--lx-color-background-secondary);
     border: var(--lx-primary-border);
     border-radius: var(--lx-border-radius-m);
     display: flex;
     align-items: center;
     justify-content: center;
     overflow: hidden;
-    box-shadow: rgba(0, 0, 0, 0.1) 0px -2px 1px 0px inset, 0 0 2px 0 rgba(0, 0, 0, .1);
-}
-
-[data-theme="dark"] .lx-m-authentication-register-form-content-image {
-    box-shadow: rgba(255, 255, 255, 0.1) 0px 1px 1px 0px inset;
+    box-shadow: var(--lx-shadow-sm);
 }
 
 .lx-c-image-uploader .--image {

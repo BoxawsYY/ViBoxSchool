@@ -4,7 +4,7 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.7));
+  background: var(--lx-color-background-modal-dimed);
   backdrop-filter: blur(2px);
   display: flex;
   justify-content: center;
@@ -24,11 +24,7 @@
   flex-direction: column;
   overflow: hidden;
   animation: fromDownAppear 0.5s ease forwards;
-  box-shadow: rgba(0, 0, 0, 0.1) 0px 2px 1px 0px inset;
-}
-
-[data-theme="dark"] .lx-c-modal-container {
-  box-shadow: rgba(255, 255, 255, 0.1) 0px 1px 1px 0px inset;
+  box-shadow: var(--lx-shadow-lg);
 }
 
 .lx-c-modal.center {

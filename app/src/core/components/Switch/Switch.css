@@ -33,9 +33,9 @@
   left: 0;
   width: 24px;
   height: 24px;
-  background: #fff;
+  background: var(--lx-color-surface);
   border-radius: var(--lx-border-radius-circle);
-  box-shadow: 0 2px 6px rgba(154, 153, 153, 0.75);
+  box-shadow: var(--lx-shadow-sm);
   transition: all 0.2s ease;
 }
 
@@ -45,7 +45,7 @@
 }
 
 .lx-c-switch .lx-c-switch-toggle span svg path {
-  stroke: #dedede;
+  stroke: var(--lx-color-border);
   stroke-width: 2;
   stroke-linecap: round;
   stroke-linejoin: round;
