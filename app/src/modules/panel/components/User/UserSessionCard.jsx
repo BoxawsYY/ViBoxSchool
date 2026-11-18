@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types'
 import './UserSessionCard.css'
 import Button from '../../../../core/components/Button/Button'
 import { useAuth } from '../../../../core/contexts/AuthContext'
@@ -88,9 +89,9 @@ const UserSessionCard = ({ onClose = () => { } }) => {
             </div>
           ))}
 
-                  <Button size='s' color='danger' radius='full' variant='dimed' onClick={signOut}>
-          <span className='material-symbols-rounded' translate='no'>logout</span> Cerrar sesión
-        </Button>
+          <Button size='s' color='danger' radius='full' variant='dimed' onClick={signOut}>
+            <span className='material-symbols-rounded' translate='no'>logout</span> Cerrar sesión
+          </Button>
         </div>
 
 
@@ -98,6 +99,10 @@ const UserSessionCard = ({ onClose = () => { } }) => {
       </div>
     </div>
   )
+}
+
+UserSessionCard.propTypes = {
+    onClose: PropTypes.func
 }
 
 export default UserSessionCard
