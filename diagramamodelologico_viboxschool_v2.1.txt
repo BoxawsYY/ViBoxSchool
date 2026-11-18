@@ -11,7 +11,7 @@ Project ViBoxSchool_V2 {
   database_type: 'PostgreSQL'
   Note: '''
     Sistema Web de Matrículas y Pensiones · Multi-colegio.
-    - Un usuario = un rol (Users.roleId). El personal del colegio (Rector, Secretaría) pertenece a un colegio (Users.schoolId).
+    - Un usuario = un rol (Users.roleId). Todo usuario excepto el Administrador (Rector, Secretaría, Acudiente) pertenece a un colegio (Users.schoolId).
     - La planilla de pagos NO es tabla: es un reporte sobre Payments.
     - isDeleted = borrado lógico.
   '''
@@ -77,10 +77,10 @@ Table RolesPermissions {
   }
 }
 
-// Un solo rol por usuario. schoolId: solo para personal del colegio (Rector, Secretaría).
+// Un solo rol por usuario. schoolId: obligatorio para Rector, Secretaría y Acudiente; NULL solo para el Administrador.
 Table Users {
   id       uuid [pk]
-  schoolId uuid [ref: > Schools.id, note: 'NULL para Administrador y acudientes']
+  schoolId uuid [ref: > Schools.id, note: 'NULL solo para el Administrador']
   roleId   uuid [not null, ref: > Roles.id]
   name     text [not null]
   email    text [not null, unique]

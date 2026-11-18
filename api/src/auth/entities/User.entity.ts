@@ -1,6 +1,7 @@
-import { Entity, Id, Column, OneToMany, ManyToMany } from "../../core/orm/decorators/decorators.js"
+import { Entity, Id, Column, OneToMany, ManyToMany, ManyToOne } from "../../core/orm/decorators/decorators.js"
 import BlockedToken from "./BlockedToken.entity.js"
 import Role from "./Role.entity.js"
+import School from "../../schools/entities/School.entity.js"
 
 @Entity('Users')
 export class User {
@@ -59,6 +60,15 @@ export class User {
     @Column({ type: 'boolean', nullable: false, default: false })
     isOnline: boolean
 
+
+    /**
+     * Colegio al que pertenece el usuario. Obligatorio para Rector, Secretaría y
+     * Padre de familia; NULL solo para el Administrador de la plataforma.
+     */
+    @ManyToOne(() => School, { joinColumn: 'schoolId' })
+    school: Partial<School>
+
+    schoolId: string
 
     @OneToMany(() => BlockedToken, 'userId')
     blockedTokens: BlockedToken[]

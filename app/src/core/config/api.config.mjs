@@ -24,6 +24,9 @@ export const API = {
         DISCOVER: 'discover',
     }),
     ENROLLMENTS: new EndpointGroup(`${URL_BASE}/enrollments`),
+    ADMIN_USERS: new EndpointGroup(`${URL_BASE}/admin/users`, {
+        SUMMARY: 'summary',
+    }),
     AUTH: new EndpointGroup(`${URL_BASE}/auth`, {
         SIGNIN: 'login',
         DEMO_SIGNIN: 'demo-login',
