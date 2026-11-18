@@ -276,9 +276,9 @@ export class EnrollmentRepository extends BaseRepository<EnrollmentDraft> {
                 INSERT INTO "Users"
                     ("id", "name", "username", "documentType", "documentNumber", "gender",
                      "country", "city", "address", "phoneNumber", "email", "password",
-                     "registerDate", "isAuthorized", "isOnline", "isActive", "isDeleted")
+                     "registerDate", "isAuthorized", "isOnline", "isActive", "isDeleted", "schoolId")
                 VALUES ($1, $2, $3, $4, $5, NULL, 'Colombia', NULL, $6, $7, $8, $9,
-                    $10, TRUE, FALSE, TRUE, FALSE)
+                    $10, TRUE, FALSE, TRUE, FALSE, $11)
             `, [
                 userId,
                 guardian.name,
@@ -289,7 +289,8 @@ export class EnrollmentRepository extends BaseRepository<EnrollmentDraft> {
                 guardian.phone,
                 email,
                 passwordHash,
-                now
+                now,
+                draft.schoolId
             ])
             await client.query(`
                 INSERT INTO "UsersRoles" ("userId", "roleId")

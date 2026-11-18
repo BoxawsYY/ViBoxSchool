@@ -9,12 +9,13 @@ El monorepo contiene una API REST con Node.js, TypeScript, Express 5 y PostgreSQ
 - Explorar colegios aliados y consultar el perfil público de cada institución.
 - Iniciar una solicitud de matrícula en cinco pasos, cargar documentos y enviarla para revisión.
 - Gestionar colegios desde el panel de Administración global, incluidos su estado activo/suspendido.
+- Gestionar usuarios globales (Administrador, Rector, Secretaría y Padre de familia): todo usuario excepto el Administrador pertenece a un colegio y cada Padre se asocia a un estudiante de ese colegio.
 - Mostrar navegación y secciones según el rol autenticado.
 - Usar autenticación JWT con validación de roles y permisos en el servidor.
 - Cambiar entre modo claro y oscuro.
 - Guardar documentos de matrícula en un bucket privado de Supabase Storage con URLs firmadas.
 
-Los módulos de usuarios, auditoría, correos, parámetros globales y ciertas opciones de los paneles todavía muestran una pantalla de “Módulo en desarrollo”.
+Los módulos de auditoría, correos, parámetros globales y ciertas opciones de los paneles todavía muestran una pantalla de “Módulo en desarrollo”.
 
 ## Requisitos
 
@@ -53,6 +54,7 @@ ViBoxSchool/
 ├── api/                              # API REST (Express + TypeScript + PostgreSQL)
 │   ├── src/
 │   │   ├── core/                     # Router, decoradores, DI, ORM y middleware
+│   │   ├── admin/                    # Usuarios globales (panel del Administrador)
 │   │   ├── auth/                     # Autenticación, usuarios, roles y permisos
 │   │   ├── schools/                  # Gestión y directorio público de colegios
 │   │   └── enrollments/              # Matrículas, borradores y documentos
@@ -64,7 +66,7 @@ ViBoxSchool/
 │   │   ├── modules/
 │   │   │   ├── public/               # Landing, perfil y wizard de matrícula
 │   │   │   ├── auth/                 # Inicio de sesión
-│   │   │   ├── admin/                # Gestión global de colegios
+│   │   │   ├── admin/                # Gestión global de colegios y usuarios
 │   │   │   └── panel/                # Layout, navegación y paneles por rol
 │   │   └── main.jsx                  # Providers y rutas
 │   ├── .env.example
