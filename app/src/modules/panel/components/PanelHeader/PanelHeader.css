@@ -121,6 +121,21 @@
     outline-offset: 2px;
 }
 
+.lx-c-panel-header-notifications.is-active {
+    color: var(--lx-color-accent-dark);
+    background: var(--lx-color-accent-dimed);
+    box-shadow: inset 0 0 0 1px var(--lx-color-accent);
+}
+
+.lx-c-panel-header-notifications.is-active::after {
+    display: none;
+}
+
+.lx-c-panel-header-notifications.is-disabled {
+    opacity: .55;
+    cursor: default;
+}
+
 .lx-c-panel-header-notifications .material-symbols-rounded {
     font-size: 22px;
 }

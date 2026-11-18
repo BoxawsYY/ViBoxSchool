@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../../../core/contexts/AuthContext'
 import PlatformLogo from '../../../../core/components/PlatformLogo/PlatformLogo'
 import ThemeToggle from '../../../../core/components/ThemeToggle/ThemeToggle'
@@ -25,8 +26,16 @@ const getAcademicYear = (user) => (
     'Año lectivo 2027'
 )
 
+const NOTIFICATION_PATHS = {
+    Rector: '/panel/rector/notifications',
+    Secretary: '/panel/secretary/notifications',
+    Guardian: '/panel/guardian/notifications'
+}
+
 const PanelHeader = ({ role, onOpenProfile }) => {
     const { user } = useAuth()
+    const navigate = useNavigate()
+    const location = useLocation()
     const userName = user?.name || user?.username || 'Usuario'
     const initials = userName
         .split(/\s+/)
@@ -38,6 +47,9 @@ const PanelHeader = ({ role, onOpenProfile }) => {
     const isAdmin = role === 'Admin'
     const schoolName = getSchoolName(user)
     const academicYear = getAcademicYear(user)
+    const notificationPath = NOTIFICATION_PATHS[role]
+    const currentPath = location.pathname.replace(/\/+$/, '')
+    const isNotificationsPage = Boolean(notificationPath && currentPath === notificationPath)
 
     return (
         <header className='lx-c-panel-header'>
@@ -53,14 +65,36 @@ const PanelHeader = ({ role, onOpenProfile }) => {
                 </span>
             </div>
             <div className='lx-c-panel-header-actions'>
-                <button
-                    className='lx-c-panel-header-notifications'
-                    type='button'
-                    aria-label='Notificaciones'
-                    title='Notificaciones'
-                >
-                    <span className='material-symbols-rounded' aria-hidden='true'>notifications</span>
-                </button>
+                {isNotificationsPage ? (
+                    <span
+                        className='lx-c-panel-header-notifications is-active'
+                        aria-current='page'
+                        aria-label='Ya estás en Notificaciones'
+                        title='Ya estás en Notificaciones'
+                    >
+                        <span className='material-symbols-rounded' aria-hidden='true'>notifications</span>
+                    </span>
+                ) : notificationPath ? (
+                    <button
+                        className='lx-c-panel-header-notifications'
+                        type='button'
+                        onClick={() => navigate(notificationPath)}
+                        aria-label='Ir a Notificaciones'
+                        title='Ir a Notificaciones'
+                    >
+                        <span className='material-symbols-rounded' aria-hidden='true'>notifications</span>
+                    </button>
+                ) : (
+                    <button
+                        className='lx-c-panel-header-notifications is-disabled'
+                        type='button'
+                        disabled
+                        aria-label='Notificaciones no disponibles'
+                        title='Notificaciones no disponibles'
+                    >
+                        <span className='material-symbols-rounded' aria-hidden='true'>notifications</span>
+                    </button>
+                )}
                 <span className='lx-c-panel-header-role'>{ROLE_LABELS[role] || role}</span>
                 <button
                     className='lx-c-panel-header-user'
