@@ -76,7 +76,7 @@
     width: 20px;
     height: 20px;
     border-radius: var(--lx-border-radius-full);
-    background-color: var(--lx-color-warning);
+    background-color: var(--lx-color-success);
     position: absolute;
     bottom: -5%;
     right: -5%;
@@ -84,7 +84,8 @@
 }
 
 .lx-c-user-session-card-content {
-    padding: 60px 30px 30px 30px;
+    padding: 60px 24px 24px 24px;
+    user-select: text;
 }
 
 .lx-c-user-session-card-content-principal {
@@ -105,10 +106,10 @@
     color: var(--lx-color-text);
     font-size: 1.7rem;
     font-weight: 600;
-    display: flex;
-    gap: 10px;
-    align-items: center;
-    justify-self: center;
+    max-width: 100%;
+    text-align: center;
+    line-height: 1.15;
+    overflow-wrap: anywhere;
 }
 
 .lx-c-user-session-card-content-date {
@@ -133,24 +134,26 @@
 .lx-c-user-session-card-content-info {
     width: 100%;
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 15px;
     margin-top: 20px;
 }
 
 .lx-c-user-session-card-content-info-item {
-    width: 100%;
+    min-width: 0;
 }
 
 .lx-c-user-session-card-content-info-item-key {
     font-size: 13px;
     font-weight: 700;
     color: var(--lx-color-text);
+    overflow-wrap: anywhere;
 }
 
 .lx-c-user-session-card-content-info-item-value {
     font-size: 14px;
     color: var(--lx-color-text-softer);
+    overflow-wrap: anywhere;
 }
 
 .lx-c-user-session-card-created-at {

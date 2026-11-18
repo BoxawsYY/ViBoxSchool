@@ -9,7 +9,7 @@ const UserSessionCard = ({ onClose = () => { } }) => {
   const user = session.user || {}
 
   const {
-    name = 'Visistante',
+    name = 'Visitante',
     documentNumber = '',
     username = 'visitante',
     email = 'Sin correo',
@@ -50,7 +50,7 @@ const UserSessionCard = ({ onClose = () => { } }) => {
     },
     {
       label: 'Estado',
-      value: 'Acitvo'
+      value: 'Activo'
     }
   ]
 
@@ -77,7 +77,7 @@ const UserSessionCard = ({ onClose = () => { } }) => {
             {name}
           </h2>
           <span className='lx-c-user-session-card-content-role'>
-            {roles || 'Sin roles'}
+            {Array.isArray(roles) && roles.length > 0 ? roles.join(', ') : roles || 'Sin roles'}
           </span>
         </div>
 
