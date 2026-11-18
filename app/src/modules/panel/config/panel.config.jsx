@@ -3,6 +3,7 @@ import Users from '../pages/Users/Users'
 import Authorization from '../pages/Authorization/Authorization'
 import SchoolManagementPage from '../../admin/pages/SchoolManagement/SchoolManagementPage'
 import DevelopmentPage from '../pages/Development/DevelopmentPage'
+import NotificationsPage from '../pages/Notifications/NotificationsPage'
 
 export const AUTHORITIES = {
   PANEL: {
@@ -122,6 +123,11 @@ const roleItem = (role, label, slug, icon, section = 'Gestión') => ({
   items: []
 })
 
+const roleNotifications = (role) => ({
+  ...roleItem(role, 'Notificaciones', 'notifications', 'notifications', 'Comunicación'),
+  element: <NotificationsPage />
+})
+
 const roleDashboard = (role, label, icon = 'dashboard') => ({
   label,
   section: '',
@@ -141,21 +147,21 @@ export const ROLE_MENUS = {
     roleItem('Rector', 'Parámetros del colegio', 'settings', 'tune', 'Administración'),
     roleItem('Rector', 'Verificación de documentos', 'document-verification', 'verified_user'),
     roleItem('Rector', 'Reportes', 'reports', 'bar_chart'),
-    roleItem('Rector', 'Notificaciones', 'notifications', 'notifications', 'Comunicación')
+    roleNotifications('Rector')
   ],
   Secretary: [
     roleDashboard('Secretary', 'Panel de control'),
     roleItem('Secretary', 'Matrículas', 'enrollments', 'assignment'),
     roleItem('Secretary', 'Registrar pago en efectivo', 'cash-payment', 'payments'),
     roleItem('Secretary', 'Planillas de pago', 'payment-sheets', 'receipt_long'),
-    roleItem('Secretary', 'Notificaciones', 'notifications', 'notifications', 'Comunicación')
+    roleNotifications('Secretary')
   ],
   Guardian: [
     roleDashboard('Guardian', 'Inicio', 'home'),
     roleItem('Guardian', 'Matrícula y documentos', 'enrollment-documents', 'description'),
     roleItem('Guardian', 'Estado de cuenta', 'account', 'account_balance_wallet'),
     roleItem('Guardian', 'Pagar', 'payments', 'payments'),
-    roleItem('Guardian', 'Notificaciones', 'notifications', 'notifications', 'Comunicación')
+    roleNotifications('Guardian')
   ]
 }
 
