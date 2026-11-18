@@ -132,6 +132,75 @@
     transition: opacity .2s ease, width .35s ease, margin .35s ease;
 }
 
+.lx-l-panel-sidebar-footer {
+    flex: 0 0 auto;
+    display: grid;
+    gap: 2px;
+    padding: 18px 14px 20px;
+    border-top: 0;
+    background: var(--lx-color-surface);
+}
+
+.lx-l-panel-sidebar-action {
+    width: 100%;
+    min-width: 0;
+    min-height: 42px;
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    overflow: hidden;
+    padding: 0 10px;
+    border: 0;
+    border-radius: 8px;
+    color: var(--lx-color-text-muted);
+    background: transparent;
+    font: inherit;
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-align: left;
+    cursor: pointer;
+    transition: color .18s ease, background-color .18s ease;
+}
+
+.lx-l-panel-sidebar-action > .material-symbols-rounded {
+    width: 24px;
+    min-width: 24px;
+    height: 24px;
+    display: grid;
+    place-items: center;
+    font-size: 22px;
+    font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+}
+
+.lx-l-panel-sidebar-action:hover,
+.lx-l-panel-sidebar-action:focus-visible {
+    color: var(--lx-color-accent-dark);
+    background: var(--lx-color-accent-dimed);
+    outline: none;
+}
+
+.lx-l-panel-sidebar-action-label {
+    min-width: 0;
+    overflow: hidden;
+    color: inherit;
+    font-size: 0.86rem;
+    line-height: 1.15;
+    text-overflow: ellipsis;
+    white-space: normal;
+    opacity: 1;
+    transition: opacity .2s ease, width .35s ease;
+}
+
+.lx-l-panel-manual-action .material-symbols-rounded {
+    font-size: 23px;
+}
+
+.lx-l-panel-signout-action:hover,
+.lx-l-panel-signout-action:focus-visible {
+    color: var(--lx-color-danger);
+    background: var(--lx-color-danger-dimed);
+}
+
 .lx-l-panel-main {
     min-width: 0;
     min-height: 0;
@@ -187,6 +256,25 @@
 }
 
 .lx-l-panel.is-collapsed .lx-l-panel-nav-label {
+    width: 0;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.lx-l-panel.is-collapsed .lx-l-panel-sidebar-footer {
+    justify-items: center;
+    padding-right: 7px;
+    padding-left: 7px;
+}
+
+.lx-l-panel.is-collapsed .lx-l-panel-sidebar-action {
+    width: 48px;
+    justify-content: center;
+    gap: 0;
+    padding: 0;
+}
+
+.lx-l-panel.is-collapsed .lx-l-panel-sidebar-action-label {
     width: 0;
     opacity: 0;
     pointer-events: none;

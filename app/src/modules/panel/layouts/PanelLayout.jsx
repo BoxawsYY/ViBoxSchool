@@ -4,6 +4,7 @@ import PropTypes from 'prop-types'
 import { NavLink, Outlet } from 'react-router-dom'
 import { useAuth } from '../../../core/contexts/AuthContext'
 import ConnectionWrapper from '../../../core/components/ConnectionWrapper/ConnectionWrapper'
+import Notify from '../../../core/lib/notify.mjs'
 import PanelHeader from '../components/PanelHeader/PanelHeader'
 import UserSessionCard from '../components/User/UserSessionCard'
 import { ROLE_MENUS } from '../config/panel.config'
@@ -18,7 +19,7 @@ const getInitialSidebarState = () => {
 }
 
 function PanelLayout({ menu, role: forcedRole }) {
-    const { session, hasAuthorities } = useAuth()
+    const { session, signOut, hasAuthorities } = useAuth()
     const [sidebarExpanded, setSidebarExpanded] = useState(getInitialSidebarState)
     const [userCardOpen, setUserCardOpen] = useState(false)
     const role = forcedRole || session?.user?.roles?.find((userRole) => ROLE_MENUS[userRole]) || 'Admin'
@@ -54,6 +55,28 @@ function PanelLayout({ menu, role: forcedRole }) {
                             </NavLink>
                         ))}
                     </nav>
+                    <div className='lx-l-panel-sidebar-footer'>
+                        <button
+                            className='lx-l-panel-sidebar-action lx-l-panel-manual-action'
+                            type='button'
+                            onClick={() => Notify.notice('El manual de usuario en PDF estará disponible próximamente', 'info')}
+                            title='Manual de usuario en PDF'
+                            aria-label='Manual de usuario en PDF'
+                        >
+                            <span className='material-symbols-rounded' aria-hidden='true'>help</span>
+                            <span className='lx-l-panel-sidebar-action-label'>Manual de usuario (PDF)</span>
+                        </button>
+                        <button
+                            className='lx-l-panel-sidebar-action lx-l-panel-signout-action'
+                            type='button'
+                            onClick={signOut}
+                            aria-label='Cerrar sesión'
+                            title='Cerrar sesión'
+                        >
+                            <span className='material-symbols-rounded' aria-hidden='true'>logout</span>
+                            <span className='lx-l-panel-sidebar-action-label'>Cerrar sesión</span>
+                        </button>
+                    </div>
                 </div>
                         <button
                             className='lx-l-panel-sidebar-toggle'
