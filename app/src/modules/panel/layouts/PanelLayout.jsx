@@ -1,5 +1,5 @@
 import './PanelLayout.css'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import PropTypes from 'prop-types'
 import { NavLink, Outlet } from 'react-router-dom'
 import { useAuth } from '../../../core/contexts/AuthContext'
@@ -21,6 +21,7 @@ const getInitialSidebarState = () => {
 function PanelLayout({ menu, role: forcedRole }) {
     const { session, signOut, hasAuthorities } = useAuth()
     const [sidebarExpanded, setSidebarExpanded] = useState(getInitialSidebarState)
+    const popoverRef = useRef(null)
     const [userCardOpen, setUserCardOpen] = useState(false)
     const role = forcedRole || session?.user?.roles?.find((userRole) => ROLE_MENUS[userRole]) || 'Admin'
     const activeMenu = role === 'Admin' ? menu : ROLE_MENUS[role] || menu
@@ -30,11 +31,24 @@ function PanelLayout({ menu, role: forcedRole }) {
         window.localStorage.setItem('sidebar', JSON.stringify(sidebarExpanded))
     }, [sidebarExpanded])
 
+    useEffect(() => {
+        if (!userCardOpen) return undefined
+
+        const handlePointerDown = (event) => {
+            if (popoverRef.current?.contains(event.target)) return
+            if (event.target.closest?.('.lx-c-panel-header-user')) return
+            setUserCardOpen(false)
+        }
+
+        document.addEventListener('pointerdown', handlePointerDown)
+        return () => document.removeEventListener('pointerdown', handlePointerDown)
+    }, [userCardOpen])
+
     if (!session) return null
 
     return (
         <div className={`lx-l-panel ${sidebarExpanded ? 'is-expanded' : 'is-collapsed'}`}>
-            <PanelHeader role={role} onOpenProfile={() => setUserCardOpen(true)} />
+            <PanelHeader role={role} onOpenProfile={() => setUserCardOpen((open) => !open)} />
             <aside className='lx-l-panel-sidebar'>
                 <div className='lx-l-panel-sidebar-menu'>
                     <nav className='lx-l-panel-nav' aria-label='Navegación principal'>
@@ -99,7 +113,7 @@ function PanelLayout({ menu, role: forcedRole }) {
                 </ConnectionWrapper>
             </main>
             {userCardOpen && (
-                <div className='lx-l-panel-session-popover'>
+                <div ref={popoverRef} className='lx-l-panel-session-popover'>
                     <UserSessionCard onClose={() => setUserCardOpen(false)} />
                 </div>
             )}
