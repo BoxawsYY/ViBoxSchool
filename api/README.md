@@ -88,6 +88,30 @@ El directorio público filtra colegios suspendidos, inactivos, eliminados o no a
 
 Las rutas de documento y envío reciben el token del borrador mediante el header `x-enrollment-token`. El borrador tiene vencimiento y el backend valida colegio, periodo, cupos, tipo documental y metadatos/bytes de los archivos.
 
+### Usuarios globales (`/admin/users`)
+
+Gestión de usuarios desde el panel del Administrador. Es independiente de `/auth/users`, que sigue funcionando con permisos.
+
+| Método | Ruta | Acceso | Descripción |
+|---|---|---|---|
+| `GET` | `/admin/users/summary` | Admin | Conteos por rol para las tarjetas de resumen. |
+| `GET` | `/admin/users/students?schoolId=` | Admin | Estudiantes de un colegio, para asociarlos a un Padre de familia. |
+| `GET` | `/admin/users` | Admin | Lista paginada. Filtros: `search`, `role`, `schoolId` (`platform` = sin colegio), `status` (`active` \| `blocked`), `limit`, `offset`. |
+| `GET` | `/admin/users/:id` | Admin | Detalle del usuario. |
+| `POST` | `/admin/users` | Admin | Crea un usuario con su rol. |
+| `PATCH` | `/admin/users/:id` | Admin | Edita datos, rol, colegio y, opcionalmente, la contraseña. |
+| `PATCH` | `/admin/users/:id/status` | Admin | Bloquea (`blocked`) o desbloquea (`active`) el acceso (`isAuthorized`). |
+| `DELETE` | `/admin/users/:id` | Admin | Borrado lógico del usuario y de su registro de acudiente. |
+
+Reglas de negocio:
+
+- Un usuario tiene un solo rol: `Admin`, `Rector`, `Secretary` o `Guardian`.
+- Todo usuario excepto el Administrador pertenece a un colegio (`Users.schoolId`).
+- Solo puede haber un Rector por colegio.
+- El Padre de familia (`Guardian`) se asocia a un estudiante del mismo colegio con su parentesco (`mother`, `father`, `guardian`, `other`) en `StudentGuardians`, y se crea su registro en `Guardians`.
+- Correo y usuario son obligatorios y únicos; la contraseña la define el Administrador y debe ser segura.
+- El Administrador no puede bloquearse ni eliminarse a sí mismo, y siempre debe quedar al menos un Administrador activo.
+
 ## Aislamiento multi-tenant
 
 Cada colegio es una entidad `School` identificada por su `id`. Los registros institucionales de matrículas, periodos, estudiantes, grados, documentos y requisitos llevan `schoolId`. Las consultas y las relaciones de matrícula acotan los registros por ese identificador, además de validar que `gradePeriodId` pertenezca a la combinación esperada de `schoolId` y `periodId`. Esto actúa como una clave compuesta lógica para evitar asociar por error datos de distintos colegios.
@@ -103,6 +127,7 @@ Las tablas de relaciones muchos-a-muchos del ORM usan claves primarias compuesta
 ```text
 src/
 ├── core/              # Config, router, decoradores, DI, middleware y ORM
+├── admin/             # Usuarios globales (panel del Administrador)
 ├── auth/              # Usuarios, autenticación, roles, permisos y seed demo
 ├── schools/           # Colegios, directorio y seed de colegios
 └── enrollments/       # Matrículas, periodos, grados y documentos
@@ -119,7 +144,7 @@ src/
    pnpm run seed:demo-accounts
    ```
 
-   Crea las cuentas de roles Admin, Rector, Secretaría y Padre de Familia. Para habilitar el login de demo en un entorno apropiado, configura además `DEMO_LOGIN_ENABLED=true`. No habilites este acceso en producción sin una decisión explícita de despliegue.
+   Crea las cuentas de roles Admin, Rector, Secretaría y Padre de Familia. Las cuentas de Rector, Secretaría y Padre se asocian al colegio `colegio-san-rafael` (configurable con `VIBOX_DEMO_SCHOOL_CODE`), así que ejecuta antes `seed-schools.sql`. Para habilitar el login de demo en un entorno apropiado, configura además `DEMO_LOGIN_ENABLED=true`. No habilites este acceso en producción sin una decisión explícita de despliegue.
 
 El seeder de colegios es SQL y se ejecuta manualmente. El seeder de cuentas es un script Node que usa las variables DB del API.
 

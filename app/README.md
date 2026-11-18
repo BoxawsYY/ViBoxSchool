@@ -11,6 +11,7 @@ SPA de ViBoxSchool construida con React 18, Vite y React Router. Incluye vistas 
 | Wizard de matrícula | `/enroll/:code` | Flujo de cinco pasos: estudiante, acudiente, documentos, revisión y confirmación. |
 | Login | `/auth` | Inicio de sesión por rol; los botones de rol seleccionan el rol y el envío ocurre al presionar Ingresar. |
 | Administración global | `/admin/schools` | Lista, filtros, edición, alta y suspensión/reactivación lógica de colegios. |
+| Usuarios globales | `/admin/users` | CRUD de usuarios de la plataforma: resumen por rol, búsqueda, filtros (rol, colegio, estado), paginación, alta/edición en modal, bloqueo y borrado lógico. Rector, Secretaría y Padre deben tener colegio; el Padre además se asocia a un estudiante de ese colegio con su parentesco. |
 | Panel de roles | `/panel` y subrutas | Panel de Rector, Secretaría y Padre de Familia con navegación por rol. |
 
 Algunas opciones de los paneles se muestran como “Módulo en desarrollo”. Las rutas privadas están protegidas por sesión, rol y/o permisos.
@@ -77,7 +78,7 @@ src/
 ├── modules/
 │   ├── public/           # Landing, perfil del colegio y wizard de matrícula
 │   ├── auth/             # Login
-│   ├── admin/            # Gestión global de colegios
+│   ├── admin/            # Gestión global de colegios y usuarios
 │   └── panel/
 │       ├── components/   # Header compartido y componentes del panel
 │       ├── config/       # Menús por rol y autoridades

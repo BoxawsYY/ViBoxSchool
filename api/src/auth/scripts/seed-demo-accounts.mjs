@@ -17,6 +17,10 @@ const demoAccounts = [
     { role: 'Admin', alias: 'Administrador', name: 'Camila Restrepo', username: 'demo.admin' }
 ]
 
+// Todo usuario excepto el Administrador pertenece a un colegio.
+const DEMO_SCHOOL_CODE = process.env.VIBOX_DEMO_SCHOOL_CODE || 'colegio-san-rafael'
+const SCHOOL_ROLES = ['Rector', 'Secretary', 'Guardian']
+
 const pool = new Pool({
     host: process.env.DB_HOST,
     port: Number(process.env.DB_PORT || 5432),
@@ -30,6 +34,16 @@ const client = await pool.connect()
 
 try {
     await client.query('BEGIN')
+
+    const schoolResult = await client.query(`
+        SELECT "id" FROM "Schools"
+        WHERE "code" = $1 AND "isDeleted" = FALSE
+        LIMIT 1
+    `, [DEMO_SCHOOL_CODE])
+    const demoSchoolId = schoolResult.rows[0]?.id
+    if (!demoSchoolId) {
+        throw new Error(`No existe el colegio "${DEMO_SCHOOL_CODE}". Ejecuta primero src/schools/scripts/seed-schools.sql o define VIBOX_DEMO_SCHOOL_CODE`)
+    }
 
     const roles = new Map()
     for (const account of demoAccounts) {
@@ -90,19 +104,23 @@ try {
         const email = `${account.username}@demo.viboxschool.local`
         const userResult = await client.query(`
             INSERT INTO "Users"
-                ("id", "name", "username", "email", "password", "registerDate",
+                ("id", "name", "username", "email", "password", "schoolId", "registerDate",
                  "isAuthorized", "isOnline", "isActive", "isDeleted")
-            VALUES ($1, $2, $3, $4, $5, NOW(), TRUE, FALSE, TRUE, FALSE)
+            VALUES ($1, $2, $3, $4, $5, $6, NOW(), TRUE, FALSE, TRUE, FALSE)
             ON CONFLICT ("username") DO UPDATE SET
                 "name" = EXCLUDED."name",
                 "email" = EXCLUDED."email",
                 "password" = EXCLUDED."password",
+                "schoolId" = EXCLUDED."schoolId",
                 "isAuthorized" = TRUE,
                 "isActive" = TRUE,
                 "isDeleted" = FALSE,
                 "updatedAt" = NOW()
             RETURNING "id"
-        `, [randomUUID(), account.name, account.username, email, passwordHash])
+        `, [
+            randomUUID(), account.name, account.username, email, passwordHash,
+            SCHOOL_ROLES.includes(account.role) ? demoSchoolId : null
+        ])
 
         const userId = userResult.rows[0].id
         await client.query('DELETE FROM "UsersRoles" WHERE "userId" = $1', [userId])

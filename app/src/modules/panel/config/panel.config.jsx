@@ -2,6 +2,7 @@ import Dashboard from '../pages/Dashboard/Dashboard'
 import Users from '../pages/Users/Users'
 import Authorization from '../pages/Authorization/Authorization'
 import SchoolManagementPage from '../../admin/pages/SchoolManagement/SchoolManagementPage'
+import GlobalUsersPage from '../../admin/pages/GlobalUsers/GlobalUsersPage'
 import DevelopmentPage from '../pages/Development/DevelopmentPage'
 import NotificationsPage from '../pages/Notifications/NotificationsPage'
 
@@ -72,7 +73,7 @@ export const ADMIN_MENU = [
     description: 'Gestión global de usuarios',
     to: '/admin/users',
     path: 'users',
-    element: <DevelopmentPage title='Usuarios globales' />,
+    element: <GlobalUsersPage />,
     authorities: { roles: ['Admin'] },
     items: []
   },
