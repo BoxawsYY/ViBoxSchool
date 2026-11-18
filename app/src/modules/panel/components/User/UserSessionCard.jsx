@@ -4,6 +4,13 @@ import Button from '../../../../core/components/Button/Button'
 import { useAuth } from '../../../../core/contexts/AuthContext'
 import { dateCountdown } from '../../../../core/utils/dateCountdown.mjs'
 
+const ROLE_LABELS = {
+  Admin: 'Administrador',
+  Rector: 'Rector',
+  Secretary: 'Secretaría',
+  Guardian: 'Padre de Familia'
+}
+
 const UserSessionCard = ({ onClose = () => { } }) => {
   const { session, signOut } = useAuth()
   const user = session.user || {}
@@ -23,30 +30,52 @@ const UserSessionCard = ({ onClose = () => { } }) => {
 
   const avatarChar = name ? name[0] : '?'
 
+  const getRoleLabels = (roleValue) => {
+    const roleList = Array.isArray(roleValue)
+      ? roleValue
+      : String(roleValue || '').split(/[,\s]+/).filter(Boolean)
+
+    const labels = roleList.map((roleName) => ROLE_LABELS[roleName] || roleName)
+    return labels.length > 0 ? labels.join(', ') : 'Sin roles'
+  }
+
+  const roleLabel = getRoleLabels(roles)
+
+  const valueOrFallback = (value, fallback = 'Sin información') => {
+    if (value === null || value === undefined) return fallback
+    const text = String(value).trim()
+    return text || fallback
+  }
+
+  const formatBirthdate = (date) => {
+    const parsedDate = new Date(date)
+    return Number.isNaN(parsedDate.getTime()) ? 'Sin información' : parsedDate.toLocaleDateString()
+  }
+
   const fields = [
     {
       label: 'Nombre',
-      value: name || 'Sin información'
+      value: valueOrFallback(name)
     },
     {
       label: 'Identificación',
-      value: documentNumber || 'Sin información'
+      value: valueOrFallback(documentNumber)
     },
     {
       label: 'Correo',
-      value: email
+      value: valueOrFallback(email)
     },
     {
       label: 'Teléfono',
-      value: phoneNumber
+      value: valueOrFallback(phoneNumber)
     },
     {
       label: 'Género',
-      value: gender || 'No especificado'
+      value: valueOrFallback(gender, 'No especificado')
     },
     {
       label: 'Cumpleaños',
-      value: birthdate && new Date(birthdate).toLocaleDateString()
+      value: birthdate ? formatBirthdate(birthdate) : 'Sin información'
     },
     {
       label: 'Estado',
@@ -77,7 +106,7 @@ const UserSessionCard = ({ onClose = () => { } }) => {
             {name}
           </h2>
           <span className='lx-c-user-session-card-content-role'>
-            {Array.isArray(roles) && roles.length > 0 ? roles.join(', ') : roles || 'Sin roles'}
+            {roleLabel}
           </span>
         </div>
 
