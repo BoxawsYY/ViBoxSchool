@@ -1,7 +1,7 @@
 .lx-p-notifications {
     width: 100%;
     min-height: 100%;
-    padding: 18px 24px 32px;
+    padding: 22px 28px 30px;
     color: var(--lx-color-text);
     background: var(--lx-notifications-page-bg, #eef4fb);
 }
@@ -11,12 +11,12 @@
 }
 
 .lx-p-notifications-header {
-    max-width: 1280px;
+    max-width: 1520px;
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
     gap: 20px;
-    margin: 0 auto 18px;
+    margin: 0 auto 22px;
 }
 
 .lx-p-notifications-header h1 {
@@ -60,9 +60,9 @@
 }
 
 .lx-p-notifications-card {
-    max-width: 1280px;
+    max-width: 1520px;
     margin: 0 auto;
-    padding: 24px 28px 28px;
+    padding: 22px 26px 24px;
     border: 1px solid var(--lx-color-border);
     border-radius: 16px;
     background: var(--lx-color-background-primary);
@@ -75,6 +75,8 @@
     gap: 34px;
     min-width: 0;
     overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
     border-bottom: 1px solid var(--lx-color-border);
 }
 
@@ -138,7 +140,7 @@
     grid-template-columns: 56px minmax(0, 1fr) auto;
     align-items: center;
     gap: 16px;
-    padding: 17px 18px;
+    padding: 18px 18px;
     border: 1px solid var(--lx-color-border);
     border-radius: 14px;
     color: var(--lx-color-text);
@@ -185,7 +187,7 @@
 }
 
 .lx-p-notifications-icon--warning {
-    color: #c68a00;
+    color: var(--lx-color-warning);
     background: var(--lx-color-warning-bg);
 }
 
@@ -215,7 +217,7 @@
 .lx-p-notifications-item-title {
     overflow: hidden;
     color: var(--lx-color-text);
-    font-size: 1rem;
+    font-size: 0.94rem;
     font-weight: 800;
     line-height: 1.3;
     text-overflow: ellipsis;
@@ -225,7 +227,7 @@
 .lx-p-notifications-description {
     overflow: hidden;
     color: var(--lx-color-text-muted);
-    font-size: 0.95rem;
+    font-size: 0.88rem;
     line-height: 1.35;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -328,4 +330,8 @@
     .lx-p-notifications-description {
         white-space: normal;
     }
+}
+
+.lx-p-notifications-tabs::-webkit-scrollbar {
+    display: none;
 }
