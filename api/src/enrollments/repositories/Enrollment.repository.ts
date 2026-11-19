@@ -38,7 +38,13 @@ export class EnrollmentRepository extends BaseRepository<EnrollmentDraft> {
     async findReviewQueue(schoolId: string) {
         const result = await this.db.query(`
             SELECT e."id" AS "enrollmentId", e."fileNumber", e."requestedAt",
-                st."id" AS "studentId", st."name" AS "studentName", g."name" AS "grade",
+                st."id" AS "studentId", st."name" AS "studentName",
+                st."documentType" AS "studentDocumentType", st."documentNumber" AS "studentDocumentNumber",
+                g."name" AS "grade",
+                (SELECT MIN(u."name") FROM "StudentGuardians" sg
+                    JOIN "Guardians" gu ON gu."id" = sg."guardianId" AND gu."isDeleted" = FALSE AND gu."isActive" = TRUE
+                    JOIN "Users" u ON u."id" = gu."userId"
+                    WHERE sg."studentId" = st."id" AND sg."isDeleted" = FALSE AND sg."isActive" = TRUE) AS "guardianName",
                 (SELECT COUNT(DISTINCT ed."documentTypeId")::INTEGER FROM "EnrollmentDocuments" ed
                     WHERE ed."enrollmentId" = e."id" AND ed."isDeleted" = FALSE) AS "uploadedDocuments",
                 (SELECT COUNT(*)::INTEGER FROM "GradeDocumentTypes" gdt
@@ -46,7 +52,29 @@ export class EnrollmentRepository extends BaseRepository<EnrollmentDraft> {
                         AND gdt."isRequired" = TRUE AND gdt."status" = 'active'
                         AND gdt."isActive" = TRUE AND gdt."isDeleted" = FALSE) AS "requiredDocuments",
                 EXISTS (SELECT 1 FROM "EnrollmentDocuments" ed
-                    WHERE ed."enrollmentId" = e."id" AND ed."version" > 1 AND ed."isDeleted" = FALSE) AS "hasCorrections"
+                    WHERE ed."enrollmentId" = e."id" AND ed."version" > 1 AND ed."isDeleted" = FALSE) AS "hasCorrections",
+                EXISTS (
+                    SELECT 1 FROM (
+                        SELECT ed."documentTypeId", MAX(ed."version") AS version
+                        FROM "EnrollmentDocuments" ed
+                        WHERE ed."enrollmentId" = e."id" AND ed."isDeleted" = FALSE
+                        GROUP BY ed."documentTypeId"
+                    ) latest
+                    JOIN "EnrollmentDocuments" ed
+                        ON ed."enrollmentId" = e."id" AND ed."documentTypeId" = latest."documentTypeId" AND ed."version" = latest.version
+                    WHERE ed."status" = 'rejected'
+                ) AS "hasRejections",
+                EXISTS (
+                    SELECT 1 FROM (
+                        SELECT ed."documentTypeId", MAX(ed."version") AS version
+                        FROM "EnrollmentDocuments" ed
+                        WHERE ed."enrollmentId" = e."id" AND ed."isDeleted" = FALSE
+                        GROUP BY ed."documentTypeId"
+                    ) latest
+                    JOIN "EnrollmentDocuments" ed
+                        ON ed."enrollmentId" = e."id" AND ed."documentTypeId" = latest."documentTypeId" AND ed."version" = latest.version
+                    WHERE ed."status" = 'pending'
+                ) AS "hasPending"
             FROM "Enrollments" e
             JOIN "Students" st ON st."id" = e."studentId"
             JOIN "GradePeriods" gp ON gp."id" = e."gradePeriodId"
