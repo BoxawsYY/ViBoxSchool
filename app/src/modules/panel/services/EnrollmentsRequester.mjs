@@ -9,6 +9,12 @@ class EnrollmentsRequester {
         if (!result.ok) throw new Error(result.message || 'No se pudieron cargar los expedientes')
         return result.data
     }
+
+    static async detail(enrollmentId) {
+        const result = await Requester.get(`${BASE}/${encodeURIComponent(enrollmentId)}/documents`)
+        if (!result.ok) throw new Error(result.message || 'No se pudo cargar el expediente')
+        return result.data
+    }
 }
 
 export default EnrollmentsRequester
