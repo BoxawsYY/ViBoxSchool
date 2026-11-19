@@ -163,7 +163,7 @@ const EnrollmentWizardContent = ({ schoolCode, embedded = false, onSuccess, onCl
                     whatsapp: guardian.whatsapp.trim(),
                     address: guardian.address.trim()
                 }
-            })
+            }, embedded)
             setDraft(result)
             setStep(3)
         } catch (requestError) {
@@ -209,7 +209,7 @@ const EnrollmentWizardContent = ({ schoolCode, embedded = false, onSuccess, onCl
                 || (document.maxHeightPx && dimensions.heightPx > document.maxHeightPx)) {
                 throw new Error('Las dimensiones de la imagen no cumplen los requisitos del colegio.')
             }
-            await EnrollmentRequester.uploadDocument(draft, document, file, dimensions)
+            await EnrollmentRequester.uploadDocument(draft, document, file, dimensions, embedded)
             setDocuments((current) => ({
                 ...current,
                 [document.id]: {
@@ -249,7 +249,7 @@ const EnrollmentWizardContent = ({ schoolCode, embedded = false, onSuccess, onCl
         setError('')
         setBusy(true)
         try {
-            const result = await EnrollmentRequester.submitDraft(draft.id, draft.accessToken)
+            const result = await EnrollmentRequester.submitDraft(draft.id, draft.accessToken, embedded)
             setEnrollment(result)
             setStep(5)
             onSuccess?.(result)

@@ -16,23 +16,23 @@ const getStorageClient = async () => {
 }
 
 class EnrollmentRequester {
-    static async createDraft(data) {
-        const result = await Requester.post(`${API.ENROLLMENTS.BASE}/`, data, { useAuth: false })
+    static async createDraft(data, useAuth = false) {
+        const result = await Requester.post(`${API.ENROLLMENTS.BASE}/`, data, { useAuth })
         if (!result.ok) throw new Error(result.message || 'No se pudo iniciar la matrícula')
         return result.data
     }
 
-    static async addDocument(draftId, accessToken, data) {
+    static async addDocument(draftId, accessToken, data, useAuth = false) {
         const url = `${API.ENROLLMENTS.BASE}/${encodeURIComponent(draftId)}/documents`
         const result = await Requester.post(url, data, {
             headers: { 'x-enrollment-token': accessToken },
-            useAuth: false
+            useAuth
         })
         if (!result.ok) throw new Error(result.message || 'No se pudo guardar el documento')
         return result.data
     }
 
-    static async uploadDocument(draft, document, file, dimensions = {}) {
+    static async uploadDocument(draft, document, file, dimensions = {}, useAuth = false) {
         const headers = { 'x-enrollment-token': draft.accessToken }
         const baseUrl = `${API.ENROLLMENTS.BASE}/${encodeURIComponent(draft.id)}`
         const uploadResult = await Requester.post(`${baseUrl}/documents/upload-url`, {
@@ -40,7 +40,7 @@ class EnrollmentRequester {
             mimeType: file.type,
             sizeBytes: file.size,
             ...dimensions
-        }, { headers, useAuth: false })
+        }, { headers, useAuth })
         if (!uploadResult.ok) throw new Error(uploadResult.message || 'No se pudo preparar la carga del documento')
 
         const { path, token } = uploadResult.data
@@ -60,14 +60,14 @@ class EnrollmentRequester {
             mimeType: file.type,
             sizeBytes: file.size,
             ...dimensions
-        })
+        }, useAuth)
     }
 
-    static async submitDraft(draftId, accessToken) {
+    static async submitDraft(draftId, accessToken, useAuth = false) {
         const url = `${API.ENROLLMENTS.BASE}/${encodeURIComponent(draftId)}/submit`
         const result = await Requester.post(url, {}, {
             headers: { 'x-enrollment-token': accessToken },
-            useAuth: false
+            useAuth
         })
         if (!result.ok) throw new Error(result.message || 'No se pudo enviar la matrícula')
         return result.data
