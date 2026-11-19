@@ -28,6 +28,11 @@ Configura las variables en `api/.env` antes de iniciar el servidor. No compartas
 | `SUPABASE_SERVICE_ROLE_KEY` | Para documentos | Clave privada usada en el servidor para URLs de carga firmadas. Nunca se expone al frontend. |
 | `DEMO_LOGIN_ENABLED` | No | Solo habilita `POST /auth/demo-login` si vale `true`. |
 | `VIBOX_DEMO_PASSWORD` | Para demos | Contraseña común que asigna el seeder de cuentas de prueba. Debe cumplir la política de contraseña fuerte. |
+| `EMAIL_PROVIDER` | No | Proveedor de correo para las notificaciones: `mock` (por defecto, sin red real), `resend` o `brevo`. |
+| `RESEND_API_KEY` | Para Resend | Clave del proveedor Resend; sólo se lee si `EMAIL_PROVIDER=resend`. |
+| `BREVO_API_KEY` | Para Brevo | Clave del proveedor Brevo; sólo se lee si `EMAIL_PROVIDER=brevo`. |
+| `BREVO_SENDER_EMAIL` | Para Brevo | Remitente verificado en la cuenta Brevo. |
+| `BREVO_SENDER_NAME` | No | Nombre amigable del remitente; por defecto `ViBoxSchool`. |
 
 La conexión a Supabase PostgreSQL puede usar Session Pooler, útil en entornos con IPv4. El ORM ejecuta `Database.sync()` al arrancar la API y crea/sincroniza las tablas definidas por las entidades registradas.
 
@@ -84,9 +89,29 @@ El directorio público filtra colegios suspendidos, inactivos, eliminados o no a
 | `POST` | `/enrollments` | Público | Crea un borrador de matrícula y devuelve un token de acceso temporal. |
 | `POST` | `/enrollments/:id/documents/upload-url` | Token de borrador | Emite URL/credenciales firmadas para cargar un documento al bucket privado. |
 | `POST` | `/enrollments/:id/documents` | Token de borrador | Verifica y registra el documento cargado. |
-| `POST` | `/enrollments/:id/submit` | Token de borrador | Valida y envía la solicitud de matrícula. |
+| `GET` | `/enrollments/review-queue` | Rector, Secretaría | Cola de expedientes de matrícula pendientes del colegio. |
+| `GET` | `/enrollments/:enrollmentId/documents` | Rector, Secretaría | Tipos documentales requeridos y estado de cada uno. |
+| `PATCH` | `/enrollments/documents/:documentId/review` | Rector, Secretaría | Aprueba o rechaza un documento. El rechazo exige `observation`; ambos extremos envían correo al acudiente responsable (CU009 aprobado, CU010 con observación). |
 
 Las rutas de documento y envío reciben el token del borrador mediante el header `x-enrollment-token`. El borrador tiene vencimiento y el backend valida colegio, periodo, cupos, tipo documental y metadatos/bytes de los archivos.
+
+### Notificaciones (`/notifications`)
+
+Canal in-app para el panel y correo al acudiente para los eventos CU009/CU010. Acceso restringido a Rector, Secretaría y Admin para configurar/consultar según corresponda; Guardian recibe 401 por diseño (RF-45).
+
+| Método | Ruta | Acceso | Descripción |
+|---|---|---|---|
+| `GET` | `/notifications/` | Rector, Secretaría | Avisos internos del usuario. Parámetros: `isRead`, `limit`, `offset`. |
+| `GET` | `/notifications/unread-count` | Rector, Secretaría | Total de avisos no leídos. |
+| `PATCH` | `/notifications/read-all` | Rector, Secretaría | Marca todos como leídos. |
+| `PATCH` | `/notifications/:id/read` | Rector, Secretaría | Marca uno como leído. |
+| `PATCH` | `/notifications/:id/unread` | Rector, Secretaría | Alterna uno a no leído. |
+| `GET` | `/notifications/settings/` | Rector, Secretaría, Admin | Lista reglas de aviso del colegio (filtro `status`). |
+| `POST` | `/notifications/settings/` | Rector, Secretaría, Admin | Crea regla. `daysBefore` debe ser un entero mayor que cero (CU040). |
+| `PATCH` | `/notifications/settings/:id` | Rector, Secretaría, Admin | Edita regla. Idéntica validación. |
+| `PATCH` | `/notifications/settings/:id/status` | Rector, Secretaría, Admin | Activa o desactiva la regla. |
+
+Los envíos son asíncronos y no bloquean la operación que los origina; ante fallos recurrentes se registra estado `failed` y se reintenta. Las reglas inactivas se omiten en silencio. Las plantillas se renderizan por colegiado por evento con las claves `{studentName}`, `{fileNumber}`, `{observation}`, `{daysBefore}`. La consulta administrativa del histórico completo (CU043) y el reenvío manual (CU044) llegan con la fase de notificaciones externas, junto con los recordatorios y alertas de mora (CU045).
 
 ### Usuarios globales (`/admin/users`)
 
@@ -130,7 +155,8 @@ src/
 ├── admin/             # Usuarios globales (panel del Administrador)
 ├── auth/              # Usuarios, autenticación, roles, permisos y seed demo
 ├── schools/           # Colegios, directorio y seed de colegios
-└── enrollments/       # Matrículas, periodos, grados y documentos
+├── enrollments/       # Matrículas, periodos, grados, documentos y revisión
+└── notifications/     # Notificaciones in-app, configuración y emisores de correo
 ```
 
 ## Datos iniciales y seeders

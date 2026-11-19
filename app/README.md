@@ -13,6 +13,7 @@ SPA de ViBoxSchool construida con React 18, Vite y React Router. Incluye vistas 
 | Administración global | `/admin/schools` | Lista, filtros, edición, alta y suspensión/reactivación lógica de colegios. |
 | Usuarios globales | `/admin/users` | CRUD de usuarios de la plataforma: resumen por rol, búsqueda, filtros (rol, colegio, estado), paginación, alta/edición en modal, bloqueo y borrado lógico. Rector, Secretaría y Padre deben tener colegio; el Padre además se asocia a un estudiante de ese colegio con su parentesco. |
 | Panel de roles | `/panel` y subrutas | Panel de Rector, Secretaría y Padre de Familia con navegación por rol. |
+| Panel por rol · Notificaciones | `/panel/{rol}/notifications` | Avisos internos; Rector/Secretaría ven el engranaje de reglas incrustadas en la fila de filtros. |
 
 Algunas opciones de los paneles se muestran como “Módulo en desarrollo”. Las rutas privadas están protegidas por sesión, rol y/o permisos.
 
@@ -79,11 +80,13 @@ src/
 │   ├── public/           # Landing, perfil del colegio y wizard de matrícula
 │   ├── auth/             # Login
 │   ├── admin/            # Gestión global de colegios y usuarios
+│   ├── rector/           # Páginas y servicios específicos del Rector
 │   └── panel/
 │       ├── components/   # Header compartido y componentes del panel
 │       ├── config/       # Menús por rol y autoridades
 │       ├── layouts/      # Sidebar, header, scroll y outlet
-│       └── pages/        # Dashboard y módulos del panel
+│       ├── services/     # Requesters: notificaciones y reglas de notificaciones
+│       └── pages/        # Dashboard y módulos del panel (incluidas Notifications)
 └── main.jsx              # Providers y definición de rutas
 ```
 
@@ -95,3 +98,11 @@ src/
 | `pnpm run build` | Build optimizado de producción. |
 | `pnpm run preview` | Sirve localmente el build generado. |
 | `pnpm run lint` | Ejecuta ESLint. |
+
+## Notificaciones en el panel
+
+La barra superior muestra un botón de campana con puntico de no leídas en todos los roles del panel y lleva a la página según rol (`/panel/{rol}/notifications`). La página filtra por Todos / No leídos / pagos / documentos según el rol; cada aviso lleva a la sección de origen (por ejemplo, a la cola de matrícula o a Documentos). Un botón por aviso individual permite alternar entre leída/no leída, y hay control global "Marcar todas como leídas". El header del panel muestra el contador de no leídas y lo actualiza al cambiar la ruta.
+
+Para roles **Rector** y **Secretaría**, la fila de filtros añade, al extremo derecho, un engranaje que abre las **Reglas de notificaciones**: listar, crear, editar, activar y desactivar avisos por evento (observación de documento, documentos pendientes, mora, manual, reserva…) y canal (`email`, `whatsapp`, `internal`). Los envíos reales los decide esta regla (la configuración es del colegio); el correo al acudiente se dispara en la revisión de documentos (rechazo con observación / aprueba: CU009/CU010).
+
+Nada de esto necesita variables extra en `app/.env`: la SPA usa el mismo cliente apuntando a `VITE_API_URL_*`. La configuración de reglas vive toda en el backend (verificable e independiente de cachés del navegador).
