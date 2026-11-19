@@ -2,6 +2,7 @@ import { Inject, Service } from '../../core/decorators/decorators.js'
 import NotificationSettingRepository from '../repositories/NotificationSetting.repository.js'
 import NotificationDeliveryRepository from '../repositories/NotificationDelivery.repository.js'
 import { getEmailProvider, getEmailProviderName } from '../integrations/email/EmailProviderFactory.js'
+import { EmailAttachment } from '../integrations/email/EmailProvider.js'
 
 const MAX_ATTEMPTS = 3
 const BASE_DELAY_MS = 1000
@@ -29,6 +30,17 @@ export interface DocumentApprovedEmailInput {
     fileNumber: string
 }
 
+export interface PaymentReceiptEmailInput {
+    schoolId: string
+    to: string
+    studentName: string
+    receiptNumber: string
+    referenceNumber: string
+    totalAmount: string
+    concepts: string
+    attachment: EmailAttachment
+}
+
 interface DeliverInput {
     schoolId: string
     settingId: string | null
@@ -36,6 +48,7 @@ interface DeliverInput {
     to: string
     subject: string
     content: string
+    attachment?: EmailAttachment
 }
 
 @Service()
@@ -97,6 +110,35 @@ export class EmailEmitterService {
         })
     }
 
+    async paymentReceipt(input: PaymentReceiptEmailInput) {
+        const setting = await this.notificationSettingRepository.findBySchoolEventChannel(
+            input.schoolId, 'payment_confirmation', 'email'
+        )
+        if (setting?.status === 'inactive') return { sent: false as const, skipped: 'setting_inactive' as const }
+
+        const values = {
+            studentName: input.studentName,
+            receiptNumber: input.receiptNumber,
+            referenceNumber: input.referenceNumber,
+            totalAmount: input.totalAmount,
+            concepts: input.concepts
+        }
+        const subject = `Comprobante de pago ${input.receiptNumber}`
+        const content = setting?.template
+            ? renderTemplate(setting.template, values)
+            : `Hola ${input.studentName}:\n\nRegistramos tu pago por ${input.totalAmount}.\nReferencia: ${input.referenceNumber}\nComprobante: ${input.receiptNumber}\nConceptos: ${input.concepts}\n\nAdjuntamos el comprobante en PDF.\n\nViBoxSchool`
+
+        return this.deliver({
+            schoolId: input.schoolId,
+            settingId: setting?.id ?? null,
+            eventType: 'payment_confirmation',
+            to: input.to,
+            subject,
+            content,
+            attachment: input.attachment
+        })
+    }
+
     private async deliver(input: DeliverInput) {
         const provider = getEmailProvider()
         const providerName = getEmailProviderName()
@@ -107,7 +149,7 @@ export class EmailEmitterService {
 
         while (attempts < MAX_ATTEMPTS) {
             attempts += 1
-            result = await provider.send(input.to, input.subject, input.content)
+            result = await provider.send(input.to, input.subject, input.content, input.attachment)
             if (result.ok) break
 
             lastError = result.error || `Error desconocido (intento ${attempts})`
