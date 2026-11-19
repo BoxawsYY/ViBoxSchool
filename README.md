@@ -2,6 +2,8 @@
 
 ViBoxSchool es una plataforma web multi-colegio (multi-tenant) para gestionar perfiles institucionales, procesos de matrícula y pensiones. Incluye un directorio público de colegios, un wizard de matrícula en línea y paneles por rol para Administrador global, Rector, Secretaría y Padre de Familia.
 
+**Versión: v1.1.0**
+
 El monorepo contiene una API REST con Node.js, TypeScript, Express 5 y PostgreSQL, y una aplicación SPA en React 18 y Vite. El backend usa un ORM y un sistema de enrutamiento basados en decoradores propios.
 
 ## Funcionalidades
@@ -10,6 +12,10 @@ El monorepo contiene una API REST con Node.js, TypeScript, Express 5 y PostgreSQ
 - Iniciar una solicitud de matrícula en cinco pasos, cargar documentos y enviarla para revisión.
 - Gestionar colegios desde el panel de Administración global, incluidos su estado activo/suspendido.
 - Gestionar usuarios globales (Administrador, Rector, Secretaría y Padre de familia): todo usuario excepto el Administrador pertenece a un colegio y cada Padre se asocia a un estudiante de ese colegio.
+- Revisar los expedientes de matrícula desde el panel de Rector/Secretaría: cola por colegio, búsqueda de estudiantes, vista previa del documento y aprobación o rechazo con observación obligatoria al rechazar.
+- Configurar los parámetros académicos del colegio desde el panel del Rector: grados (nombre, capacidad, valor de matrícula, activos/inactivos), período académico y recargo por mora.
+- Editar la información y la identidad del colegio desde el panel del Rector (p. ej. color institucional y niveles ofrecidos).
+- Recibir notificaciones in-app en el panel según el rol (campana con contador de no leídas y lista con enlace a la sección correspondiente).
 - Mostrar navegación y secciones según el rol autenticado.
 - Usar autenticación JWT con validación de roles y permisos en el servidor.
 - Cambiar entre modo claro y oscuro.
@@ -47,6 +53,15 @@ pnpm --dir app run dev
 
 La app estará en `http://localhost:5173` y la API en `http://localhost:3000/api/v1`. Consulta [api/README.md](./api/README.md) y [app/README.md](./app/README.md) para configuración, endpoints y detalles de cada módulo.
 
+## Novedades v1.1.0
+
+- Módulo de notificaciones in-app (RF-31 a RF-34): tabla `Notifications`, API (`GET /notifications`, `GET /notifications/unread-count`, `PATCH /:id/read`, `PATCH /read-all`), campana con puntico en el encabezado y página de avisos por rol (Guardian, Rector, Secretaría) con marcar leída y navegación al tocar.
+- Configuración de notificaciones por colegio (RF-35): `Rector`/`Secretaría`/`Admin` definen tipo de evento, canal (email/whatsapp/internal), anticipación, plantilla y hora de envío (`/notifications/settings`).
+- Notificación automática al enviar la matrícula: aviso in-app a Rectoría y Secretaría con la referencia del expediente.
+- Revisión de documentos (panel de Rector/Secretaría): cola de expedientes, búsqueda, visor de documentos y aprobación/rechazo con observación obligatoria al rechazar.
+- Configuración académica del colegio (Rector): gestión de grados, período académico y recargo por mora.
+- Configuración del colegio (Rector): información institucional e identidad visual editables.
+
 ## Estructura del monorepo
 
 ```text
@@ -57,6 +72,7 @@ ViBoxSchool/
 │   │   ├── admin/                    # Usuarios globales (panel del Administrador)
 │   │   ├── auth/                     # Autenticación, usuarios, roles y permisos
 │   │   ├── schools/                  # Gestión y directorio público de colegios
+│   │   ├── notifications/            # Notificaciones in-app y su configuración (RF-31 a RF-35)
 │   │   └── enrollments/              # Matrículas, borradores y documentos
 │   ├── .env.example
 │   └── README.md
@@ -67,7 +83,8 @@ ViBoxSchool/
 │   │   │   ├── public/               # Landing, perfil y wizard de matrícula
 │   │   │   ├── auth/                 # Inicio de sesión
 │   │   │   ├── admin/                # Gestión global de colegios y usuarios
-│   │   │   └── panel/                # Layout, navegación y paneles por rol
+│   │   │   ├── panel/                # Layout, navegación y paneles por rol
+│   │   │   └── rector/               # Páginas del Rector (verificación, configuración)
 │   │   └── main.jsx                  # Providers y rutas
 │   ├── .env.example
 │   └── README.md
