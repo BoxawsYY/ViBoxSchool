@@ -35,6 +35,15 @@ const statusLabel = (status) => ({
     missing: 'Falta cargar'
 }[status] || status)
 
+const RELATIONSHIPS = [
+    { value: 'mother', label: 'Madre' },
+    { value: 'father', label: 'Padre' },
+    { value: 'guardian', label: 'Acudiente' },
+    { value: 'other', label: 'Otro' }
+]
+
+const dateInputValue = (value) => (typeof value === 'string' ? value.slice(0, 10) : '')
+
 const statusTone = (status) => ({
     approved: 'green',
     rejected: 'red',
@@ -88,6 +97,10 @@ const SecretaryEnrollmentsPage = () => {
     const [detail, setDetail] = useState(null)
     const [detailLoading, setDetailLoading] = useState(false)
     const [detailError, setDetailError] = useState('')
+    const [editMode, setEditMode] = useState(false)
+    const [form, setForm] = useState(null)
+    const [saving, setSaving] = useState(false)
+    const [saveError, setSaveError] = useState('')
 
     const loadQueue = useCallback(async () => {
         setLoading(true)
@@ -134,17 +147,86 @@ const SecretaryEnrollmentsPage = () => {
     const from = filtered.length === 0 ? 0 : currentPage * PAGE_SIZE + 1
     const to = Math.min(filtered.length, currentPage * PAGE_SIZE + PAGE_SIZE)
 
-    const openDetail = async (item) => {
+    const openDetail = async (item, mode = 'view') => {
+        setEditMode(mode === 'edit')
+        setForm(null)
+        setSaveError('')
         setDetailLoading(true)
         setDetailError('')
         setDetail({ summary: item })
         try {
             const data = await EnrollmentsRequester.detail(item.enrollmentId)
             setDetail({ summary: item, ...data })
+            if (mode === 'edit' && !data.locked && data.student && data.guardian) {
+                setForm({
+                    student: {
+                        name: data.student.name ?? '',
+                        documentType: data.student.documentType ?? '',
+                        documentNumber: data.student.documentNumber ?? '',
+                        gender: data.student.gender ?? '',
+                        birthDate: dateInputValue(data.student.birthDate),
+                        phone: data.student.phone ?? '',
+                        address: data.student.address ?? '',
+                        previousSchool: data.student.previousSchool ?? '',
+                        shift: data.student.shift ?? 'morning'
+                    },
+                    guardian: {
+                        name: data.guardian.name ?? '',
+                        documentType: data.guardian.documentType ?? '',
+                        documentNumber: data.guardian.documentNumber ?? '',
+                        email: data.guardian.email ?? '',
+                        phone: data.guardian.phone ?? '',
+                        whatsapp: data.guardian.whatsapp ?? '',
+                        address: data.guardian.address ?? '',
+                        relationship: data.guardian.relationship ?? 'other',
+                        isPaymentResponsible: data.guardian.isPaymentResponsible ?? false,
+                        emailNotifications: data.guardian.emailNotifications ?? false,
+                        whatsappNotifications: data.guardian.whatsappNotifications ?? false
+                    }
+                })
+            }
         } catch (requestError) {
             setDetailError(requestError.message || 'No se pudo cargar el expediente')
         } finally {
             setDetailLoading(false)
+        }
+    }
+
+    const updateField = (section, field) => (event) => {
+        const value = event.target.type === 'checkbox'
+            ? event.target.checked
+            : event.target.value
+        setForm((current) => ({ ...current, [section]: { ...current[section], [field]: value } }))
+    }
+
+    const closeDetail = () => {
+        setDetail(null)
+        setEditMode(false)
+        setForm(null)
+    }
+
+    const saveForm = async () => {
+        if (!form || !detail) return
+        setSaving(true)
+        setSaveError('')
+        const compact = (object) => Object.fromEntries(
+            Object.entries(object).filter(([, value]) => (
+                typeof value === 'boolean' ? true : String(value ?? '').trim() !== ''
+            ))
+        )
+        try {
+            await EnrollmentsRequester.update(detail.summary.enrollmentId, {
+                student: compact(form.student),
+                guardian: compact(form.guardian)
+            })
+            const item = detail.summary
+            setNotice('Cambios guardados y registrados.')
+            await openDetail(item, 'view')
+            loadQueue()
+        } catch (requestError) {
+            setSaveError(requestError.message || 'No se pudieron guardar los cambios')
+        } finally {
+            setSaving(false)
         }
     }
 
@@ -244,10 +326,10 @@ const SecretaryEnrollmentsPage = () => {
                                                     <td><span className={`se-pill se-pill-${statePill.tone}`}>{statePill.label}</span></td>
                                                     <td>
                                                         <div className='se-action-buttons'>
-                                                            <button type='button' className='se-icon-btn' aria-label={`Ver expediente ${item.fileNumber}`} onClick={() => openDetail(item)}>
+                                                            <button type='button' className='se-icon-btn' aria-label={`Ver expediente ${item.fileNumber}`} onClick={() => openDetail(item, 'view')}>
                                                                 <span className='material-symbols-rounded' aria-hidden='true'>visibility</span>
                                                             </button>
-                                                            <button type='button' className='se-icon-btn' aria-label={`Revisar documentos de ${item.fileNumber}`} onClick={() => openDetail(item)}>
+                                                            <button type='button' className='se-icon-btn' aria-label={`Editar datos de ${item.fileNumber}`} onClick={() => openDetail(item, 'edit')}>
                                                                 <span className='material-symbols-rounded' aria-hidden='true'>edit</span>
                                                             </button>
                                                         </div>
@@ -281,13 +363,54 @@ const SecretaryEnrollmentsPage = () => {
             )}
 
             {detail && (
-                <Modal size='large' position='center' title={`Expediente ${detail.summary?.fileNumber || ''}`} onClose={() => setDetail(null)} show>
+                <Modal size='large' position='center' title={`Expediente ${detail.summary?.fileNumber || ''}`} onClose={closeDetail} show>
                     <div className='se-detail'>
                         <p className='se-detail-title'>{detail.summary?.studentName} · {detail.summary?.grade}</p>
                         <p className='se-detail-meta'>Solicitada: {formatDate(detail.summary?.requestedAt)} · Documentos cargados: {detail.summary?.uploadedDocuments}/{detail.summary?.requiredDocuments}</p>
-                        {detailLoading ? <p className='se-state' role='status'>Cargando documentos…</p>
+                        {detail?.locked && (
+                            <p className='se-locked' role='status'>
+                                Expediente verificado: todos los documentos están aprobados. Solo lectura.
+                            </p>
+                        )}
+                        {detailLoading ? <p className='se-state' role='status'>Cargando…</p>
                             : detailError ? <p className='se-error' role='alert'>{detailError}</p>
-                            : (
+                            : editMode ? (
+                                <form className='se-form' onSubmit={(event) => { event.preventDefault(); saveForm() }}>
+                                    <p className='se-form-heading'>Datos del estudiante</p>
+                                    <div className='se-form-grid'>
+                                        <label className='se-field se-field-full'><span>Nombre</span><input type='text' value={form.student.name} onChange={updateField('student', 'name')} required /></label>
+                                        <label className='se-field'><span>Tipo doc.</span><select value={form.student.documentType} onChange={updateField('student', 'documentType')}><option value='RC'>RC</option><option value='TI'>T.I.</option><option value='CC'>C.C.</option><option value='CE'>C.E.</option><option value='PA'>Pasaporte</option></select></label>
+                                        <label className='se-field'><span>Número de documento</span><input type='text' value={form.student.documentNumber} onChange={updateField('student', 'documentNumber')} /></label>
+                                        <label className='se-field'><span>Género</span><select value={form.student.gender} onChange={updateField('student', 'gender')}><option value=''>—</option><option value='F'>F</option><option value='M'>M</option><option value='O'>Otro</option></select></label>
+                                        <label className='se-field'><span>Fecha nacimiento</span><input type='date' value={form.student.birthDate} onChange={updateField('student', 'birthDate')} /></label>
+                                        <label className='se-field'><span>Teléfono</span><input type='text' value={form.student.phone} onChange={updateField('student', 'phone')} /></label>
+                                        <label className='se-field'><span>Turno</span><select value={form.student.shift} onChange={updateField('student', 'shift')}><option value='morning'>Mañana</option><option value='afternoon'>Tarde</option></select></label>
+                                        <label className='se-field se-field-full'><span>Dirección</span><input type='text' value={form.student.address} onChange={updateField('student', 'address')} /></label>
+                                        <label className='se-field se-field-full'><span>Colegio anterior</span><input type='text' value={form.student.previousSchool} onChange={updateField('student', 'previousSchool')} /></label>
+                                    </div>
+
+                                    <p className='se-form-heading'>Datos del acudiente</p>
+                                    <div className='se-form-grid'>
+                                        <label className='se-field se-field-full'><span>Nombre</span><input type='text' value={form.guardian.name} onChange={updateField('guardian', 'name')} required /></label>
+                                        <label className='se-field'><span>Tipo doc.</span><select value={form.guardian.documentType} onChange={updateField('guardian', 'documentType')}><option value='CC'>C.C.</option><option value='TI'>T.I.</option><option value='CE'>C.E.</option><option value='PA'>Pasaporte</option></select></label>
+                                        <label className='se-field'><span>Número de documento</span><input type='text' value={form.guardian.documentNumber} onChange={updateField('guardian', 'documentNumber')} /></label>
+                                        <label className='se-field'><span>Correo</span><input type='email' value={form.guardian.email} onChange={updateField('guardian', 'email')} /></label>
+                                        <label className='se-field'><span>Teléfono</span><input type='text' value={form.guardian.phone} onChange={updateField('guardian', 'phone')} /></label>
+                                        <label className='se-field'><span>WhatsApp</span><input type='text' value={form.guardian.whatsapp} onChange={updateField('guardian', 'whatsapp')} /></label>
+                                        <label className='se-field se-field-full'><span>Dirección</span><input type='text' value={form.guardian.address} onChange={updateField('guardian', 'address')} /></label>
+                                        <label className='se-field'><span>Parentesco</span><select value={form.guardian.relationship} onChange={updateField('guardian', 'relationship')}>{RELATIONSHIPS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
+                                        <label className='se-field'><span>Responsable de pago</span><select value={String(form.guardian.isPaymentResponsible)} onChange={(event) => setForm((current) => ({ ...current, guardian: { ...current.guardian, isPaymentResponsible: event.target.value === 'true' } }))}><option value='true'>Sí</option><option value='false'>No</option></select></label>
+                                        <label className='se-field se-check'><span>Notificaciones por correo</span><input type='checkbox' checked={Boolean(form.guardian.emailNotifications)} onChange={updateField('guardian', 'emailNotifications')} /></label>
+                                        <label className='se-field se-check'><span>Notificaciones por WhatsApp</span><input type='checkbox' checked={Boolean(form.guardian.whatsappNotifications)} onChange={updateField('guardian', 'whatsappNotifications')} /></label>
+                                    </div>
+
+                                    {saveError && <p className='se-error' role='alert'>{saveError}</p>}
+                                    <div className='se-form-actions'>
+                                        <button type='button' className='se-btn se-btn-ghost' onClick={() => setEditMode(false)} disabled={saving}>Cancelar</button>
+                                        <button type='submit' className='se-btn se-btn-primary' disabled={saving}>{saving ? 'Guardando…' : 'Guardar cambios'}</button>
+                                    </div>
+                                </form>
+                            ) : (
                                 <ul className='se-doc-list'>
                                     {(detail.documents || []).map((document) => (
                                         <li key={document.documentTypeId} className='se-doc-item'>
@@ -301,6 +424,11 @@ const SecretaryEnrollmentsPage = () => {
                                     ))}
                                 </ul>
                             )}
+                        {!editMode && !detail?.locked && (
+                            <div className='se-form-actions'>
+                                <button type='button' className='se-btn se-btn-primary' onClick={() => openDetail(detail.summary, 'edit')}>Editar datos</button>
+                            </div>
+                        )}
                     </div>
                 </Modal>
             )}

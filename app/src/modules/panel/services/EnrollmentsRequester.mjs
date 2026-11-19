@@ -10,6 +10,12 @@ class EnrollmentsRequester {
         return result.data
     }
 
+    static async update(enrollmentId, data) {
+        const result = await Requester.patch(`${BASE}/${encodeURIComponent(enrollmentId)}`, data)
+        if (!result.ok) throw new Error(result.message || 'No se pudo actualizar el expediente')
+        return result.data
+    }
+
     static async detail(enrollmentId) {
         const result = await Requester.get(`${BASE}/${encodeURIComponent(enrollmentId)}/documents`)
         if (!result.ok) throw new Error(result.message || 'No se pudo cargar el expediente')
