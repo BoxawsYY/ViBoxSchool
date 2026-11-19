@@ -72,6 +72,17 @@ export class NotificationRepository extends BaseRepository<Notification> {
         return rows[0] || null
     }
 
+    async markUnread(id: string, recipientUserId: string): Promise<any | null> {
+        const rows = await this.raw(`
+            UPDATE "Notifications"
+            SET "isRead" = FALSE, "readAt" = NULL
+            WHERE "id" = $1 AND "recipientUserId" = $2 AND "isDeleted" = FALSE
+            RETURNING ${this.PUBLIC_FIELDS}
+        `, [id, recipientUserId])
+
+        return rows[0] || null
+    }
+
     async markAllRead(recipientUserId: string): Promise<number> {
         const result = await this.db.query(`
             UPDATE "Notifications"

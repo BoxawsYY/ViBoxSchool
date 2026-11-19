@@ -311,16 +311,14 @@ export class EnrollmentService {
         )
         if (!enrollment) throw new NotFoundError('El borrador no existe o expiró')
 
-        try {
-            await this.notificationEmitter.newEnrollmentRequest({
-                schoolId: enrollment.schoolId,
-                enrollmentId: enrollment.id,
-                fileNumber: enrollment.fileNumber,
-                studentName: enrollment.studentName
-            })
-        } catch (error) {
+        this.notificationEmitter.newEnrollmentRequest({
+            schoolId: enrollment.schoolId,
+            enrollmentId: enrollment.id,
+            fileNumber: enrollment.fileNumber,
+            studentName: enrollment.studentName
+        }).catch((error) => {
             console.error('[Enrollment] No se pudo emitir el aviso de nueva solicitud', error)
-        }
+        })
 
         return { ...enrollment, temporaryPassword: password }
     }

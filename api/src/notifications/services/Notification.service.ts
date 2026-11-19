@@ -45,6 +45,13 @@ export class NotificationService {
         return new NotificationDTO(row)
     }
 
+    async markUnread(id: string, userId: string) {
+        const row = await this.notificationRepository.markUnread(id, userId)
+        if (!row) throw new NotFoundError('Notificación no encontrada')
+
+        return new NotificationDTO(row)
+    }
+
     async markAllRead(userId: string) {
         const updated = await this.notificationRepository.markAllRead(userId)
         return { updated }

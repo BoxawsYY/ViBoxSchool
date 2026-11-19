@@ -90,8 +90,8 @@ export class NotificationSettingController {
         if (value === null) return null
 
         const parsed = typeof value === 'number' ? value : Number.parseInt(String(value), 10)
-        if (!Number.isInteger(parsed) || parsed < 0 || parsed > 365) {
-            throw new InvalidFormatError('daysBefore debe ser un entero entre 0 y 365')
+        if (!Number.isInteger(parsed) || parsed < 1 || parsed > 365) {
+            throw new InvalidFormatError('El valor ingresado en días de anticipación no es válido, por favor verifíquelo.')
         }
 
         return parsed
