@@ -14,6 +14,7 @@ export interface EnrollmentDraftInput {
     guardianData: Record<string, unknown>
     accessTokenHash: string
     expiresAt: Date
+    createdBy?: string
 }
 
 export interface DraftDocumentInput {
@@ -168,8 +169,8 @@ export class EnrollmentRepository extends BaseRepository<EnrollmentDraft> {
             const result = await client.query(`
                 INSERT INTO "EnrollmentDrafts"
                     ("id", "schoolId", "gradePeriodId", "periodId", "studentData", "guardianData",
-                     "accessTokenHash", "agreedFee", "expiresAt", "status", "isActive", "isDeleted")
-                VALUES ($1, $2, $3, $4, $5::jsonb, $6::jsonb, $7, $8, $9, 'draft', TRUE, FALSE)
+                     "accessTokenHash", "agreedFee", "expiresAt", "status", "isActive", "isDeleted", "createdBy")
+                VALUES ($1, $2, $3, $4, $5::jsonb, $6::jsonb, $7, $8, $9, 'draft', TRUE, FALSE, $10)
                 RETURNING "id", "expiresAt", "status", "agreedFee"
             `, [
                 id,
@@ -180,7 +181,8 @@ export class EnrollmentRepository extends BaseRepository<EnrollmentDraft> {
                 JSON.stringify(input.guardianData),
                 input.accessTokenHash,
                 agreedFee,
-                input.expiresAt
+                input.expiresAt,
+                input.createdBy ?? 'Public'
             ])
             return result.rows[0]
         })
@@ -247,7 +249,7 @@ export class EnrollmentRepository extends BaseRepository<EnrollmentDraft> {
         return result.rows[0] || null
     }
 
-    async createDraftDocument(input: DraftDocumentInput, accessTokenHash: string) {
+    async createDraftDocument(input: DraftDocumentInput, accessTokenHash: string, actor: string = 'Public') {
         return this.db.transaction(async (client) => {
             const draftResult = await client.query(`
                 SELECT "schoolId" FROM "EnrollmentDrafts"
@@ -277,8 +279,8 @@ export class EnrollmentRepository extends BaseRepository<EnrollmentDraft> {
                 INSERT INTO "EnrollmentDraftDocuments"
                     ("id", "schoolId", "draftId", "documentTypeId", "version", "fileUrl", "storagePath",
                      "fileName", "mimeType", "sizeBytes", "widthPx", "heightPx", "status",
-                     "isActive", "isDeleted")
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, 'pending', TRUE, FALSE)
+                     "isActive", "isDeleted", "createdBy")
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, 'pending', TRUE, FALSE, $13)
                 RETURNING "id", "documentTypeId", "version", "fileName", "mimeType", "sizeBytes", "status"
             `, [
                 documentId,
@@ -292,13 +294,14 @@ export class EnrollmentRepository extends BaseRepository<EnrollmentDraft> {
                 input.mimeType,
                 input.sizeBytes,
                 input.widthPx ?? null,
-                input.heightPx ?? null
+                input.heightPx ?? null,
+                actor
             ])
             return result.rows[0]
         })
     }
 
-    async submitDraft(draftId: string, accessTokenHash: string, passwordHash: string) {
+    async submitDraft(draftId: string, accessTokenHash: string, passwordHash: string, actor: string = 'Public') {
         return this.db.transaction(async (client) => {
             const draftResult = await client.query(`
                 SELECT d."id", d."schoolId", d."gradePeriodId", d."periodId",
@@ -457,8 +460,8 @@ export class EnrollmentRepository extends BaseRepository<EnrollmentDraft> {
             await client.query(`
                 INSERT INTO "Enrollments"
                     ("id", "schoolId", "fileNumber", "studentId", "gradePeriodId", "periodId",
-                     "requestedAt", "agreedFee", "shift", "status", "isActive", "isDeleted")
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'pending', TRUE, FALSE)
+                     "requestedAt", "agreedFee", "shift", "status", "isActive", "isDeleted", "createdBy")
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'pending', TRUE, FALSE, $10)
             `, [
                 enrollmentId,
                 draft.schoolId,
@@ -468,7 +471,8 @@ export class EnrollmentRepository extends BaseRepository<EnrollmentDraft> {
                 draft.periodId,
                 now,
                 draft.agreedFee,
-                student.shift
+                student.shift,
+                actor
             ])
 
             const documents = await client.query(`

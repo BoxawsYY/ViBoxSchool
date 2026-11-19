@@ -120,7 +120,7 @@ export class EnrollmentService {
         return document
     }
 
-    async createDraft(input: Record<string, any>) {
+    async createDraft(input: Record<string, any>, actor: string = 'Public') {
         const { schoolCode, gradePeriodId, student, guardian } = input || {}
         if (typeof schoolCode !== 'string' || !schoolCode.trim()) {
             throw new InvalidFormatError('schoolCode es obligatorio')
@@ -217,7 +217,8 @@ export class EnrollmentService {
             studentData: cleanStudent,
             guardianData: cleanGuardian,
             accessTokenHash: hashToken(accessToken),
-            expiresAt
+            expiresAt,
+            createdBy: actor
         })
 
         return { ...draft, accessToken }
@@ -287,7 +288,7 @@ export class EnrollmentService {
         }
     }
 
-    async addDocument(draftId: string, accessToken: string, input: Record<string, any>) {
+    async addDocument(draftId: string, accessToken: string, input: Record<string, any>, actor: string = 'Public') {
         if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(draftId)) {
             throw new InvalidFormatError('El identificador del borrador no es válido')
         }
@@ -334,12 +335,12 @@ export class EnrollmentService {
             fileUrl: `supabase://${STORAGE_BUCKET}/${path}`,
             storagePath: path,
             fileName: fileName.trim(), mimeType, sizeBytes, widthPx, heightPx
-        }, tokenHash)
+        }, tokenHash, actor)
         if (!document) throw new NotFoundError('El borrador no existe o expiró')
         return document
     }
 
-    async submitDraft(draftId: string, accessToken: string) {
+    async submitDraft(draftId: string, accessToken: string, actor: string = 'Public') {
         if (!accessToken) throw new InvalidFormatError('Falta el token de acceso del borrador')
         const password = `${Array.from(randomBytes(18), byte => PASSWORD_CHARACTERS[byte % PASSWORD_CHARACTERS.length]).join('')}Aa1!`
         const passwordHash = await bcrypt.hash(password, 10)
@@ -347,7 +348,8 @@ export class EnrollmentService {
         const enrollment = await this.enrollmentRepository.submitDraft(
             draftId,
             tokenHash,
-            passwordHash
+            passwordHash,
+            actor
         )
         if (!enrollment) throw new NotFoundError('El borrador no existe o expiró')
 

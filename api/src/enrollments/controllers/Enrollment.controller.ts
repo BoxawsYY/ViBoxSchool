@@ -57,7 +57,8 @@ export class EnrollmentController {
     @Post('/')
     @Public()
     async create(request, response) {
-        const result = await this.enrollmentService.createDraft(request.body || {})
+        const actor = request.user?.username ?? 'Public'
+        const result = await this.enrollmentService.createDraft(request.body || {}, actor)
         return response.status(201).json(result)
     }
 
@@ -68,10 +69,12 @@ export class EnrollmentController {
         if (typeof accessToken !== 'string') {
             throw new InvalidFormatError('Se requiere el encabezado x-enrollment-token')
         }
+        const actor = request.user?.username ?? 'Public'
         const document = await this.enrollmentService.addDocument(
             request.params?.id,
             accessToken,
-            request.body || {}
+            request.body || {},
+            actor
         )
         return response.status(201).json(document)
     }
@@ -100,7 +103,8 @@ export class EnrollmentController {
         }
         const result = await this.enrollmentService.submitDraft(
             request.params?.id,
-            accessToken
+            accessToken,
+            request.user?.username ?? 'Public'
         )
         return response.status(201).json(result)
     }

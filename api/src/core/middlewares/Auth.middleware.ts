@@ -63,6 +63,16 @@ export class AuthMiddleware {
 
     }
 
+    async optionalAuth(request) {
+        const token = request.headers['authorization'] || request.cookies?.accessToken
+        if (!token) return
+        try {
+            await this.auth(request)
+        } catch {
+            return
+        }
+    }
+
 }
 
 export default AuthMiddleware

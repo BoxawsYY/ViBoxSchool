@@ -20,6 +20,8 @@ export class RouteHandler {
 
             if (!isPublic) {
                 await this.middleware.auth(request)
+            } else {
+                await this.middleware.optionalAuth(request)
             }
 
             if (auth) {
