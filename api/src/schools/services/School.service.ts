@@ -1,6 +1,7 @@
 import { Inject, Service } from '../../core/decorators/decorators.js'
 import { AlreadyExistError } from '../../core/errors/AlreadyExist.error.js'
 import { NotFoundError } from '../../core/errors/NotFound.error.js'
+import { ForbiddenError } from '../../core/errors/Forbidden.error.js'
 import School from '../entities/School.entity.js'
 import SchoolRepository from '../repositories/School.repository.js'
 
@@ -26,6 +27,40 @@ export class SchoolService {
 
     async findAllForAdmin() {
         return this.schoolRepository.findAllForAdmin()
+    }
+
+    async findForRector(schoolId: string) {
+        const school = await this.schoolRepository.findById(schoolId)
+        if (!school || school.isDeleted) throw new NotFoundError('El colegio no existe')
+        return school
+    }
+
+    async updateForRector(userSchoolId: string, data: Partial<School>) {
+        if (!userSchoolId) throw new ForbiddenError('El usuario no tiene acceso a un colegio')
+        const school = await this.findForRector(userSchoolId)
+        const updated = await this.schoolRepository.updateSchool(school.id, data)
+        if (!updated) throw new NotFoundError('El colegio no existe')
+        return updated
+    }
+
+    async getAcademicSettingsForRector(schoolId: string, includeInactive = false) {
+        await this.findForRector(schoolId)
+        return this.schoolRepository.findAcademicSettings(schoolId, includeInactive)
+    }
+
+    async setGradeActiveForRector(schoolId: string, gradeId: string, isActive: boolean) {
+        await this.findForRector(schoolId)
+        const grade = await this.schoolRepository.setGradeActive(schoolId, gradeId, isActive)
+        if (!grade) throw new NotFoundError('El grado no existe en este colegio')
+        return grade
+    }
+
+    async saveAcademicSettingsForRector(schoolId: string, settings: {
+        enrollmentPeriod: { startDate: string, endDate: string, lateFeePercentage: number, lateFeeDay: number, applyLateFee: boolean },
+        gradePeriods: Array<{ gradeId?: string, name: string, maxCapacity: number, enrollmentFee: number, tuitionFee: number, billingFrequency: string }>
+    }) {
+        await this.findForRector(schoolId)
+        return this.schoolRepository.saveAcademicSettings(schoolId, settings)
     }
 
     async create(data: Partial<School>) {
