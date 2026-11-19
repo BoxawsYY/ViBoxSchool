@@ -424,8 +424,9 @@ const SecretaryEnrollmentsPage = () => {
                             : detailError ? <p className='se-error' role='alert'>{detailError}</p>
                             : editMode ? (
                                 <form className='se-edit-form' onSubmit={(event) => { event.preventDefault(); saveForm() }}>
-                                    <p className='se-form-heading'>Datos del estudiante</p>
-                                    <InputGroup columns={2}>
+                                    <div className='se-form-section'>
+                                        <p className='se-form-heading'>Datos del estudiante</p>
+                                        <InputGroup columns={2}>
                                         <div className='se-field-full'>
                                             <Input id='student-name' name='name' label='Nombre completo' value={form.student.name} onChange={updateField('student', 'name')} required maxLength='160' autoComplete='name' />
                                         </div>
@@ -441,9 +442,11 @@ const SecretaryEnrollmentsPage = () => {
                                         <div className='se-field-full'>
                                             <Input id='student-previousSchool' name='previousSchool' label='Colegio anterior' value={form.student.previousSchool} onChange={updateField('student', 'previousSchool')} maxLength='160' />
                                         </div>
-                                    </InputGroup>
+                                        </InputGroup>
+                                    </div>
 
-                                    <p className='se-form-heading'>Datos del acudiente</p>
+                                    <div className='se-form-section'>
+                                        <p className='se-form-heading'>Datos del acudiente</p>
                                     <InputGroup columns={2}>
                                         <div className='se-field-full'>
                                             <Input id='guardian-name' name='name' label='Nombre completo' value={form.guardian.name} onChange={updateField('guardian', 'name')} required maxLength='160' autoComplete='name' />
@@ -458,7 +461,8 @@ const SecretaryEnrollmentsPage = () => {
                                         <div className='se-field-full'>
                                             <Input id='guardian-address' name='address' label='Dirección de residencia' value={form.guardian.address} onChange={updateField('guardian', 'address')} maxLength='200' autoComplete='street-address' />
                                         </div>
-                                    </InputGroup>
+                                        </InputGroup>
+                                    </div>
 
                                     <div className='se-switch-rows'>
                                         <div className='se-switch-row'>
