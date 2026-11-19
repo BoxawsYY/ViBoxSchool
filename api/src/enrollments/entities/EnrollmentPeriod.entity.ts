@@ -25,6 +25,12 @@ export class EnrollmentPeriod {
     @Column({ type: 'number', nullable: true })
     lateFeeDay: number
 
+    @Column({ type: 'number', nullable: false, default: 1 })
+    pensionStartMonth: number
+
+    @Column({ type: 'number', nullable: false, default: 10 })
+    pensionEndMonth: number
+
     @Column({ type: 'boolean', nullable: true })
     applyLateFee: boolean
 
