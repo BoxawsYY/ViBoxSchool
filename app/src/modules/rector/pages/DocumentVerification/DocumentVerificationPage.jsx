@@ -102,7 +102,7 @@ export default function DocumentVerificationPage() {
         : document))
       setObservation('')
       setModal('')
-      setMessage(modal === 'approve' ? 'Documento aprobado.' : 'Rechazo guardado. No se envió ninguna notificación.')
+      setMessage(modal === 'approve' ? 'Documento aprobado.' : 'Rechazo guardado. Se intentará notificar al acudiente.')
       const queueResult = await Requester.get(`${enrollmentUrl}/review-queue`)
       if (queueResult.ok && Array.isArray(queueResult.data)) {
         setStudents(queueResult.data)
