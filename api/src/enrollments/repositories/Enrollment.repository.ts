@@ -274,8 +274,10 @@ export class EnrollmentRepository extends BaseRepository<EnrollmentDraft> {
         return this.db.transaction(async (client) => {
             const draftResult = await client.query(`
                 SELECT d."id", d."schoolId", d."gradePeriodId", d."periodId",
-                    d."studentData", d."guardianData", s."code", ep."academicYear",
-                    COALESCE(d."agreedFee", gp."enrollmentFee") AS "agreedFee", g."id" AS "gradeId"
+                    d."studentData", d."guardianData", s."code", ep."academicYear", ep."lateFeeDay",
+                    ep."pensionStartMonth", ep."pensionEndMonth",
+                    COALESCE(d."agreedFee", gp."enrollmentFee") AS "agreedFee", g."id" AS "gradeId",
+                    gp."tuitionFee", gp."billingFrequency", gp."installmentCount"
                 FROM "EnrollmentDrafts" d
                 JOIN "Schools" s ON s."id" = d."schoolId"
                 JOIN "GradePeriods" gp ON gp."id" = d."gradePeriodId"
@@ -442,6 +444,34 @@ export class EnrollmentRepository extends BaseRepository<EnrollmentDraft> {
                 draft.agreedFee,
                 student.shift
             ])
+
+            const billingMonths: Record<string, number> = {
+                monthly: 1,
+                bimonthly: 2,
+                quarterly: 3,
+                semiannual: 6,
+                annual: 12
+            }
+            const monthsPerInstallment = billingMonths[String(draft.billingFrequency).toLowerCase()]
+            if (!monthsPerInstallment) {
+                throw new InvalidFormatError('La periodicidad de pago configurada para el grado no es válida')
+            }
+            const startMonth = Number(draft.pensionStartMonth) || 1
+            const endMonth = Number(draft.pensionEndMonth) || 10
+            const installmentCount = Math.floor((endMonth - startMonth) / monthsPerInstallment) + 1
+            const dueDay = Math.max(1, Math.min(Number(draft.lateFeeDay) || 1, 31))
+            for (let installment = 0; installment < installmentCount; installment++) {
+                const billingMonth = new Date(Date.UTC(Number(draft.academicYear), startMonth - 1 + installment * monthsPerInstallment, 1))
+                const daysInMonth = new Date(Date.UTC(billingMonth.getUTCFullYear(), billingMonth.getUTCMonth() + 1, 0)).getUTCDate()
+                const dueDate = new Date(Date.UTC(
+                    billingMonth.getUTCFullYear(), billingMonth.getUTCMonth(), Math.min(dueDay, daysInMonth)
+                ))
+                await client.query(`
+                    INSERT INTO "Pensions"
+                        ("id", "schoolId", "enrollmentId", "billingMonth", "dueDate", "amount", "lateFee", "status", "isActive", "isDeleted")
+                    VALUES ($1, $2, $3, $4, $5, $6, 0, 'pending', TRUE, FALSE)
+                `, [uuidv4(), draft.schoolId, enrollmentId, billingMonth, dueDate, draft.tuitionFee])
+            }
 
             const documents = await client.query(`
                 SELECT DISTINCT ON ("documentTypeId") "documentTypeId", "version", "fileUrl", "storagePath",
