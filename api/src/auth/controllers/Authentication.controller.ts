@@ -1,9 +1,11 @@
 import { Controller, Inject, Public, Post, Get, Patch, Roles } from '../../core/decorators/decorators.js'
+import jwt from 'jsonwebtoken'
 import { ROLES } from '../constants/authorities.js'
 import { UnauthorizedError } from '../../core/errors/Unauthorized.error.js'
 import Validator from '../../core/utils/Validator.js'
 import UserDTO from '../dtos/User.dto.js'
 import UserService from '../services/User.service.js'
+import BlockedTokenService from '../services/BlockedToken.service.js'
 
 @Controller('/auth')
 export class AuthenticationController {
@@ -17,6 +19,8 @@ export class AuthenticationController {
     constructor(
         @Inject(UserService)
         private userService: UserService,
+        @Inject(BlockedTokenService)
+        private blockedTokenService: BlockedTokenService,
     ) { }
 
     @Post('/register')
@@ -104,13 +108,23 @@ export class AuthenticationController {
             })
     }
 
+    @Public()
     @Post('/logout')
     async logout(request, response) {
         const token = request.headers['authorization'] || request.cookies?.accessToken
 
-        Validator.required({ token })
-
-        await this.userService.logout(token, request.user?.id)
+        // Permit logout after JWT expiry, while only revoking correctly signed tokens.
+        if (token && process.env.JWT_SECRET) {
+            try {
+                const decoded = jwt.verify(token, process.env.JWT_SECRET, { ignoreExpiration: true })
+                if (typeof decoded !== 'string' && decoded.userId
+                    && !(await this.blockedTokenService.existsBlockedTokenByToken(token))) {
+                    await this.userService.logout(token, decoded.userId)
+                }
+            } catch {
+                // Invalid tokens still get a clean local logout.
+            }
+        }
 
         return response.clearCookie('accessToken').status(200).json({ message: 'Sesión cerrada correctamente' })
     }
