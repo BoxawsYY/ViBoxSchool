@@ -1,5 +1,6 @@
 import './EnrollmentWizardPage.css'
 import { useEffect, useMemo, useState } from 'react'
+import PropTypes from 'prop-types'
 import { Link } from 'react-router-dom'
 import PlatformLogo from '../../../../core/components/PlatformLogo/PlatformLogo'
 import ThemeToggle from '../../../../core/components/ThemeToggle/ThemeToggle'
@@ -644,6 +645,13 @@ const EnrollmentWizardContent = ({ schoolCode, embedded = false, onSuccess, onCl
             {shell}
         </main>
     )
+}
+
+EnrollmentWizardContent.propTypes = {
+    schoolCode: PropTypes.string.isRequired,
+    embedded: PropTypes.bool,
+    onSuccess: PropTypes.func,
+    onClose: PropTypes.func
 }
 
 export default EnrollmentWizardContent
