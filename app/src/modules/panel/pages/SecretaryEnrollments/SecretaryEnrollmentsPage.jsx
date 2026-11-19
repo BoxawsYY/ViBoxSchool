@@ -413,8 +413,17 @@ const SecretaryEnrollmentsPage = () => {
             {detail && (
                 <Modal size='large' position='center' title={`Expediente ${detail.summary?.fileNumber || ''}`} onClose={closeDetail} show>
                     <div className='se-detail'>
-                        <p className='se-detail-title'>{detail.summary?.studentName} · {detail.summary?.grade}</p>
-                        <p className='se-detail-meta'>Solicitada: {formatDate(detail.summary?.requestedAt)} · Documentos cargados: {detail.summary?.uploadedDocuments}/{detail.summary?.requiredDocuments}</p>
+                        <div className='se-detail-head'>
+                            <div className='se-detail-icon'><span className='material-symbols-rounded' aria-hidden='true'>folder_managed</span></div>
+                            <div className='se-detail-headline'>
+                                <p className='se-detail-eyebrow'>Expediente de matrícula</p>
+                                <p className='se-detail-title'>{detail.summary?.studentName} · {detail.summary?.grade}</p>
+                                <p className='se-detail-meta'>
+                                    <span><span className='material-symbols-rounded' aria-hidden='true'>calendar_today</span>Solicitada: {formatDate(detail.summary?.requestedAt)}</span>
+                                    <span><span className='material-symbols-rounded' aria-hidden='true'>task</span>Documentos cargados: {detail.summary?.uploadedDocuments}/{detail.summary?.requiredDocuments}</span>
+                                </p>
+                            </div>
+                        </div>
                         {detail?.locked && (
                             <p className='se-locked' role='status'>
                                 Expediente verificado: todos los documentos están aprobados. Solo lectura.
