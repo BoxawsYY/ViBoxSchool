@@ -914,3 +914,19 @@ body:has(.lx-p-enrollment-start),
         font-size: 16px;
     }
 }
+
+.lx-enrollment-embedded .lx-enrollment-shell {
+    width: 100%;
+    padding: 4px 4px 16px;
+    margin: 0;
+}
+
+.lx-enrollment-embedded .lx-enrollment-layout,
+.lx-enrollment-embedded .lx-enrollment-complete-layout {
+    grid-template-columns: 1fr;
+    gap: 20px;
+}
+
+.lx-enrollment-embedded .lx-enrollment-aside {
+    grid-template-columns: 1fr;
+}
