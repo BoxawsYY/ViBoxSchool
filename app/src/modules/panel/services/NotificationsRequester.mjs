@@ -27,6 +27,12 @@ class NotificationsRequester {
         return result.data
     }
 
+    static async markUnread(id) {
+        const result = await Requester.patch(`${BASE}/${encodeURIComponent(id)}/unread`)
+        if (!result.ok) throw new Error(result.message || 'No se pudo marcar la notificación')
+        return result.data
+    }
+
     static async markAllRead() {
         const result = await Requester.patch(API.NOTIFICATIONS.ENDPOINTS.READ_ALL)
         if (!result.ok) throw new Error(result.message || 'No se pudieron marcar las notificaciones')

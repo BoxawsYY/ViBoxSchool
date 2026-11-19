@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../../../core/contexts/AuthContext'
 import Notify from '../../../../core/lib/notify.mjs'
 import NotificationsRequester from '../../services/NotificationsRequester.mjs'
+import NotificationSettingsPage from '../../../rector/pages/NotificationSettings/NotificationSettingsPage'
 import { getNotificationProfile } from './notifications.config.mjs'
 
 const getSessionRoles = (session) => {
@@ -91,6 +92,9 @@ const NotificationsPage = () => {
     const [items, setItems] = useState([])
     const [loading, setLoading] = useState(true)
     const [activeTab, setActiveTab] = useState('all')
+    const [showRules, setShowRules] = useState(false)
+
+    const canManageRules = roles.includes('Rector') || roles.includes('Secretary')
 
     useEffect(() => {
         setActiveTab('all')
@@ -108,7 +112,7 @@ const NotificationsPage = () => {
             } catch (err) {
                 if (!cancelled) {
                     setItems([])
-                    Notify.notice(err?.message || 'No se pudieron cargar las notificaciones', 'error')
+                    if (canManageRules) Notify.notice(err?.message || 'No se pudieron cargar las notificaciones', 'error')
                 }
             } finally {
                 if (!cancelled) setLoading(false)
@@ -166,6 +170,28 @@ const NotificationsPage = () => {
         }
     }
 
+    const markNotificationAsUnread = async (id, event) => {
+        if (event) event.stopPropagation()
+
+        const target = notifications.find((notification) => notification.id === id)
+        if (target?.unread) return
+
+        setItems((current) => current.map((notification) => (
+            notification.id === id ? { ...notification, unread: true } : notification
+        )))
+
+        try {
+            await NotificationsRequester.markUnread(id)
+        } catch (err) {
+            setItems((current) => current.map((notification) => (
+                notification.id === id ? { ...notification, unread: false } : notification
+            )))
+            Notify.notice(err?.message || 'No se pudo marcar como no leída', 'error')
+        } finally {
+            notifyChanged()
+        }
+    }
+
     const markAllAsRead = async () => {
         if (unreadCount === 0) return
 
@@ -180,6 +206,23 @@ const NotificationsPage = () => {
         } finally {
             notifyChanged()
         }
+    }
+
+    if (showRules) {
+        return (
+            <section className='lx-p-notifications' aria-labelledby='lx-p-notifications-rules-title'>
+                <header className='lx-p-notifications-header'>
+                    <div>
+                        <h1 id='lx-p-notifications-rules-title'>Reglas de notificaciones</h1>
+                        <p>{role === 'Rector' ? 'Configuración del colegio' : 'Configuración de avisos'}</p>
+                    </div>
+                    <button className='lx-p-notifications-mark-all' type='button' onClick={() => setShowRules(false)}>
+                        Volver a notificaciones
+                    </button>
+                </header>
+                <NotificationSettingsPage />
+            </section>
+        )
     }
 
     return (
@@ -219,6 +262,17 @@ const NotificationsPage = () => {
                             </button>
                         )
                     })}
+                    {canManageRules && (
+                        <button
+                            type='button'
+                            className='lx-p-notifications-rules'
+                            onClick={() => setShowRules(true)}
+                            aria-label='Reglas de notificaciones'
+                            title='Reglas de notificaciones'
+                        >
+                            <span className='material-symbols-rounded' aria-hidden='true'>settings</span>
+                        </button>
+                    )}
                 </div>
 
                 {loading ? (
@@ -230,7 +284,7 @@ const NotificationsPage = () => {
                 ) : visibleNotifications.length > 0 ? (
                     <ul className='lx-p-notifications-list'>
                         {visibleNotifications.map((notification) => (
-                            <li key={notification.id}>
+                            <li key={notification.id} className='lx-p-notifications-entry'>
                                 <button
                                     type='button'
                                     className={`lx-p-notifications-item${notification.unread ? ' is-unread' : ''}`}
@@ -255,6 +309,17 @@ const NotificationsPage = () => {
                                         {notification.unread && <span className='lx-p-notifications-unread-dot' aria-hidden='true' />}
                                     </span>
                                 </button>
+                                {!notification.unread && (
+                                    <button
+                                        type='button'
+                                        className='lx-p-notifications-unread-action'
+                                        onClick={(event) => markNotificationAsUnread(notification.id, event)}
+                                        aria-label='Marcar como no leída'
+                                        title='Marcar como no leída'
+                                    >
+                                        <span className='material-symbols-rounded' aria-hidden='true'>mark_email_unread</span>
+                                    </button>
+                                )}
                             </li>
                         ))}
                     </ul>
