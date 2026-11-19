@@ -473,6 +473,23 @@ export class EnrollmentRepository extends BaseRepository<EnrollmentDraft> {
             return { id: enrollmentId, fileNumber, status: 'pending', username, requestedAt: now, agreedFee: draft.agreedFee, schoolId: draft.schoolId, studentName: student?.name ?? null }
         })
     }
+
+    async findEnrollmentEmailContext(documentId: string): Promise<{ guardianEmail: string | null, emailNotifications: boolean, studentName: string | null, fileNumber: string | null } | null> {
+        const result = await this.db.query(`
+            SELECT u."email" AS "guardianEmail", g."emailNotifications" AS "emailNotifications",
+                   s."name" AS "studentName", e."fileNumber" AS "fileNumber"
+            FROM "EnrollmentDocuments" d
+            JOIN "Enrollments" e ON e."id" = d."enrollmentId"
+            JOIN "Students" s ON s."id" = e."studentId"
+            JOIN "StudentGuardians" sg ON sg."studentId" = s."id" AND sg."isDeleted" = FALSE
+            JOIN "Guardians" g ON g."id" = sg."guardianId" AND g."isDeleted" = FALSE AND g."isActive" = TRUE
+            JOIN "Users" u ON u."id" = g."userId"
+            WHERE d."id" = $1
+            ORDER BY sg."isPaymentResponsible" DESC NULLS LAST
+            LIMIT 1
+        `, [documentId])
+        return result.rows[0] ?? null
+    }
 }
 
 export default EnrollmentRepository

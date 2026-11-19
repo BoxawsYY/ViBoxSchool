@@ -6,6 +6,7 @@ import { InvalidFormatError } from '../../core/errors/InvalidFormat.error.js'
 import { NotFoundError } from '../../core/errors/NotFound.error.js'
 import EnrollmentRepository from '../repositories/Enrollment.repository.js'
 import NotificationEmitterService from '../../notifications/services/NotificationEmitter.service.js'
+import EmailEmitterService from '../../notifications/services/EmailEmitterService.js'
 
 const REQUIRED_STUDENT_FIELDS = ['name', 'documentType', 'documentNumber']
 const REQUIRED_GUARDIAN_FIELDS = ['name', 'documentType', 'documentNumber', 'email', 'phone', 'relationship']
@@ -51,7 +52,9 @@ export class EnrollmentService {
         @Inject(EnrollmentRepository)
         private enrollmentRepository: EnrollmentRepository,
         @Inject(NotificationEmitterService)
-        private notificationEmitter: NotificationEmitterService
+        private notificationEmitter: NotificationEmitterService,
+        @Inject(EmailEmitterService)
+        private emailEmitter: EmailEmitterService
     ) { }
 
     async findReviewQueue(schoolId: string) {
@@ -61,9 +64,16 @@ export class EnrollmentService {
     async findEnrollmentReview(schoolId: string, enrollmentId: string) {
         const review = await this.enrollmentRepository.findEnrollmentReview(schoolId, enrollmentId)
         if (!review) throw new NotFoundError('El expediente no existe')
-        const storage = getStorageClient().storage.from(STORAGE_BUCKET)
+
+        let storage: any = null
+        try {
+            storage = getStorageClient().storage.from(STORAGE_BUCKET)
+        } catch {
+            console.warn('[EnrollmentService] Supabase Storage no está configurado; las URLs firmadas quedan en null')
+        }
+
         const documents = await Promise.all(review.documents.map(async document => {
-            if (!document.storagePath) return { ...document, signedUrl: null }
+            if (!storage || !document.storagePath) return { ...document, signedUrl: null }
             const { data, error } = await storage.createSignedUrl(document.storagePath, 60 * 60)
             if (error) {
                 console.error('[EnrollmentService] Could not sign document URL', { documentId: document.documentId, message: error.message })
@@ -77,6 +87,25 @@ export class EnrollmentService {
     async reviewDocument(schoolId: string, id: string, decision: 'approved' | 'rejected', observation: string | null, reviewerId?: string) {
         const document = await this.enrollmentRepository.reviewEnrollmentDocument(schoolId, id, decision, observation, reviewerId)
         if (!document) throw new NotFoundError('El documento no existe en este colegio')
+
+        if (decision === 'rejected' && observation?.trim() && document.id) {
+            const context = await this.enrollmentRepository.findEnrollmentEmailContext(document.id).catch((error) => {
+                console.error('[Enrollment] No se pudo resolver el acudiente para el correo de observación', error)
+                return null
+            })
+
+            if (context?.guardianEmail && context.emailNotifications !== false) {
+                this.emailEmitter.observationRejected({
+                    schoolId,
+                    to: context.guardianEmail,
+                    studentName: context.studentName || 'Estudiante',
+                    fileNumber: context.fileNumber || document.id,
+                    observation: observation.trim()
+                }).catch((error) => {
+                    console.error('[Enrollment] No se pudo emitir el correo de observación', error)
+                })
+            }
+        }
         return document
     }
 
