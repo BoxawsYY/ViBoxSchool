@@ -118,10 +118,15 @@ export class AuthenticationController {
     @Get('/me')
     async me(request, response) {
         const user = new UserDTO(request.user)
+        const schoolEntity = (request.user as any)?.school
+        const school = schoolEntity
+            ? { id: schoolEntity.id, name: schoolEntity.name, code: schoolEntity.code }
+            : null
 
         return response.status(200).json({
             user: {
                 ...user,
+                school,
                 roles: request.user?.roles || [],
                 role: request.user?.roles?.[0] || null,
                 permissions: request.user?.permissions || []

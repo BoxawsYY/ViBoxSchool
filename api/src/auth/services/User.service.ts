@@ -30,7 +30,7 @@ export class UserService {
     }
 
     async findById(id: string) {
-        const user = await this.userRepository.findById(id)
+        const user = await this.userRepository.findById(id, false, { relations: ['school'] })
 
         if (!user) throw new NotFoundError('El usuario no existe')
 
