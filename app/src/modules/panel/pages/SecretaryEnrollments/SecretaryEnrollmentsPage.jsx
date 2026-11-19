@@ -14,16 +14,18 @@ const formatDate = (value) => {
 }
 
 const deriveDocumentPill = (item) => {
+    if (item.hasRejections) return { label: 'Con observaciones', tone: 'red' }
     if (!item.requiredDocuments) return { label: 'Sin requisitos', tone: 'muted' }
-    if (item.uploadedDocuments >= item.requiredDocuments) return { label: 'Por verificar', tone: 'amber' }
-    if (item.uploadedDocuments === 0) return { label: 'Sin documentos', tone: 'red' }
+    if (item.uploadedDocuments >= item.requiredDocuments && !item.hasPending) return { label: 'Verificados', tone: 'green' }
+    if (item.uploadedDocuments === 0) return { label: 'Sin documentos', tone: 'amber' }
+    if (item.hasPending) return { label: 'Por verificar', tone: 'amber' }
     return { label: `${item.uploadedDocuments}/${item.requiredDocuments} cargados`, tone: 'amber' }
 }
 
 const deriveStatePill = (item) => {
-    if (!item.requiredDocuments) return { label: 'En revisión', tone: 'blue' }
-    if (item.uploadedDocuments >= item.requiredDocuments) return { label: 'En revisión', tone: 'blue' }
-    return { label: 'Documentos incompletos', tone: 'red' }
+    if (item.hasRejections) return { label: 'Documentos incompletos', tone: 'red' }
+    if (item.hasPending) return { label: 'En revisión', tone: 'blue' }
+    return { label: 'Pendiente de pago', tone: 'amber' }
 }
 
 const statusLabel = (status) => ({
@@ -211,7 +213,9 @@ const SecretaryEnrollmentsPage = () => {
                                             <th scope='col'>Expediente</th>
                                             <th scope='col'>Estudiante</th>
                                             <th scope='col'>Grado</th>
+                                            <th scope='col'>Acudiente</th>
                                             <th scope='col'>Documentos</th>
+                                            <th scope='col'>Pago matrícula</th>
                                             <th scope='col'>Estado</th>
                                             <th scope='col'>Solicitada</th>
                                             <th scope='col'>Acciones</th>
@@ -224,15 +228,25 @@ const SecretaryEnrollmentsPage = () => {
                                             return (
                                                 <tr key={item.enrollmentId}>
                                                     <td><strong>{item.fileNumber}</strong></td>
-                                                    <td>{item.studentName}</td>
+                                                    <td>
+                                                        <strong className='se-student'>{item.studentName}</strong>
+                                                        <small className='se-student-doc'>{item.studentDocumentType ? `${item.studentDocumentType} · ${item.studentDocumentNumber}` : 'Documento sin registro'}</small>
+                                                    </td>
                                                     <td>{item.grade}</td>
+                                                    <td>{item.guardianName || '—'}</td>
                                                     <td><span className={`se-pill se-pill-${docPill.tone}`}>{docPill.label}</span></td>
+                                                    <td><span className='se-pill se-pill-amber'>Pendiente</span></td>
                                                     <td><span className={`se-pill se-pill-${statePill.tone}`}>{statePill.label}</span></td>
                                                     <td>{formatDate(item.requestedAt)}</td>
                                                     <td>
-                                                        <button type='button' className='se-icon-btn' aria-label={`Ver expediente ${item.fileNumber}`} onClick={() => openDetail(item)}>
-                                                            <span className='material-symbols-rounded' aria-hidden='true'>visibility</span>
-                                                        </button>
+                                                        <div className='se-action-buttons'>
+                                                            <button type='button' className='se-icon-btn' aria-label={`Ver expediente ${item.fileNumber}`} onClick={() => openDetail(item)}>
+                                                                <span className='material-symbols-rounded' aria-hidden='true'>visibility</span>
+                                                            </button>
+                                                            <button type='button' className='se-icon-btn' aria-label={`Revisar documentos de ${item.fileNumber}`} onClick={() => openDetail(item)}>
+                                                                <span className='material-symbols-rounded' aria-hidden='true'>edit</span>
+                                                            </button>
+                                                        </div>
                                                     </td>
                                                 </tr>
                                             )
