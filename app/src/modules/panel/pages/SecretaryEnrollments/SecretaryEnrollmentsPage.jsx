@@ -376,7 +376,7 @@ const SecretaryEnrollmentsPage = () => {
                             : detailError ? <p className='se-error' role='alert'>{detailError}</p>
                             : editMode ? (
                                 <form className='se-form' onSubmit={(event) => { event.preventDefault(); saveForm() }}>
-                                    <p className='se-form-heading'>Datos del estudiante</p>
+                                    <p className='se-form-heading'><span className='material-symbols-rounded' aria-hidden='true'>person</span>Datos del estudiante</p>
                                     <div className='se-form-grid'>
                                         <label className='se-field se-field-full'><span>Nombre</span><input type='text' value={form.student.name} onChange={updateField('student', 'name')} required /></label>
                                         <label className='se-field'><span>Tipo doc.</span><select value={form.student.documentType} onChange={updateField('student', 'documentType')}><option value='RC'>RC</option><option value='TI'>T.I.</option><option value='CC'>C.C.</option><option value='CE'>C.E.</option><option value='PA'>Pasaporte</option></select></label>
@@ -389,7 +389,7 @@ const SecretaryEnrollmentsPage = () => {
                                         <label className='se-field se-field-full'><span>Colegio anterior</span><input type='text' value={form.student.previousSchool} onChange={updateField('student', 'previousSchool')} /></label>
                                     </div>
 
-                                    <p className='se-form-heading'>Datos del acudiente</p>
+                                    <p className='se-form-heading'><span className='material-symbols-rounded' aria-hidden='true'>diversity_2</span>Datos del acudiente</p>
                                     <div className='se-form-grid'>
                                         <label className='se-field se-field-full'><span>Nombre</span><input type='text' value={form.guardian.name} onChange={updateField('guardian', 'name')} required /></label>
                                         <label className='se-field'><span>Tipo doc.</span><select value={form.guardian.documentType} onChange={updateField('guardian', 'documentType')}><option value='CC'>C.C.</option><option value='TI'>T.I.</option><option value='CE'>C.E.</option><option value='PA'>Pasaporte</option></select></label>
