@@ -23,6 +23,7 @@
     grid-row: 2;
     overflow: visible;
     padding: 6px;
+    background: #FFFFFF;
 }
 
 .lx-l-panel-sidebar-menu {
@@ -34,7 +35,7 @@
     overflow: hidden;
     border: 1px solid var(--lx-color-border);
     border-radius: var(--lx-border-radius-m);
-    background: var(--lx-color-background);
+    background: #FFFFFF;
     transition: width .35s cubic-bezier(.2, .75, .25, 1), background-color .2s ease;
 }
 
