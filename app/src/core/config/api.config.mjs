@@ -27,6 +27,7 @@ export const API = {
     NOTIFICATIONS: new EndpointGroup(`${URL_BASE}/notifications`, {
         UNREAD_COUNT: 'unread-count',
         READ_ALL: 'read-all',
+        SETTINGS: 'settings',
     }),
     ADMIN_USERS: new EndpointGroup(`${URL_BASE}/admin/users`, {
         SUMMARY: 'summary',
