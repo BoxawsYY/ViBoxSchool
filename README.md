@@ -103,3 +103,9 @@ ViBoxSchool/
 | App | `pnpm --dir app run lint` | ESLint |
 
 Para configurar la base de datos, el almacenamiento privado y los seeders, consulta [api/README.md](./api/README.md). La configuración del frontend y sus rutas se describe en [app/README.md](./app/README.md).
+
+## Módulo de pagos
+
+El panel permite consultar conceptos pendientes por estudiante y gestionar pagos en efectivo. El acudiente puede generar referencias de pago; Secretaría puede registrar el pago recibido, indicar fecha, observaciones y monto recibido, y emitir un comprobante PDF. El comprobante se puede descargar desde la interfaz autenticada de Secretaría y se envía al correo del acudiente cuando está disponible.
+
+Para detalles de endpoints y acceso, consulta [api/README.md](./api/README.md#pagos-payments). La interfaz de Secretaría está documentada en [app/README.md](./app/README.md#pagos-en-el-panel).
