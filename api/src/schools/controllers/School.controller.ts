@@ -101,7 +101,7 @@ export class SchoolController {
         if (!enrollmentPeriod || typeof enrollmentPeriod !== 'object' || Array.isArray(enrollmentPeriod)) {
             throw new InvalidFormatError('Se requiere la configuración del periodo de matrícula')
         }
-        const { startDate, endDate, lateFeePercentage, lateFeeDay, applyLateFee } = enrollmentPeriod
+        const { startDate, endDate, lateFeePercentage, lateFeeDay, applyLateFee, pensionStartMonth, pensionEndMonth } = enrollmentPeriod
         const validDate = value => typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)
             && !Number.isNaN(Date.parse(`${value}T00:00:00`))
         if (!validDate(startDate) || !validDate(endDate) || endDate < startDate) {
@@ -114,6 +114,11 @@ export class SchoolController {
             throw new InvalidFormatError('El día límite debe estar entre 1 y 31')
         }
         if (typeof applyLateFee !== 'boolean') throw new InvalidFormatError('applyLateFee debe ser booleano')
+        if (!Number.isInteger(Number(pensionStartMonth)) || Number(pensionStartMonth) < 1 || Number(pensionStartMonth) > 12
+            || !Number.isInteger(Number(pensionEndMonth)) || Number(pensionEndMonth) < 1 || Number(pensionEndMonth) > 12
+            || Number(pensionEndMonth) < Number(pensionStartMonth)) {
+            throw new InvalidFormatError('El rango de meses de pensión no es válido')
+        }
         if (!Array.isArray(gradePeriods) || !gradePeriods.length) {
             throw new InvalidFormatError('Debe configurar al menos un grado')
         }
@@ -141,7 +146,8 @@ export class SchoolController {
         const settings = await this.schoolService.saveAcademicSettingsForRector(schoolId, {
             enrollmentPeriod: {
                 startDate, endDate, lateFeePercentage: Number(lateFeePercentage),
-                lateFeeDay: Number(lateFeeDay), applyLateFee
+                lateFeeDay: Number(lateFeeDay), applyLateFee,
+                pensionStartMonth: Number(pensionStartMonth), pensionEndMonth: Number(pensionEndMonth)
             },
             gradePeriods: normalizedGrades
         })
