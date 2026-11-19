@@ -232,7 +232,7 @@ const SecretaryEnrollmentsPage = () => {
                                             const statePill = deriveStatePill(item)
                                             return (
                                                 <tr key={item.enrollmentId}>
-                                                    <td><strong>{item.fileNumber}</strong></td>
+                                                    <td>{item.fileNumber}</td>
                                                     <td>
                                                         <strong className='se-student'>{item.studentName}</strong>
                                                         <small className='se-student-doc'>{item.studentDocumentType ? `${item.studentDocumentType} · ${item.studentDocumentNumber}` : 'Documento sin registro'}</small>
