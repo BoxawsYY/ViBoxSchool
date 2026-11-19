@@ -42,3 +42,7 @@
 .lx-p-notification-settings-loading{display:grid;place-items:center;gap:12px;padding:48px 24px;color:var(--lx-color-text-muted)}
 @media(max-width:980px){.lx-p-notification-settings-layout{grid-template-columns:1fr}}
 @media(max-width:640px){.lx-p-notification-settings-header{align-items:flex-start;flex-direction:column}.lx-p-notification-settings-form-row{grid-template-columns:1fr}.lx-p-notification-settings-item{grid-template-columns:auto minmax(0,1fr)}.lx-p-notification-settings-item-actions{grid-column:1/-1;justify-content:flex-end}}
+.lx-p-notification-settings-layout--full{grid-template-columns:minmax(0,1fr)}
+.lx-p-notification-settings-layout--full .lx-p-notification-settings-list{grid-template-columns:repeat(2,minmax(0,1fr))}
+.lx-p-notification-settings-layout--full .lx-p-notification-settings-item{height:100%}
+@media(max-width:1200px){.lx-p-notification-settings-layout--full .lx-p-notification-settings-list{grid-template-columns:1fr}}

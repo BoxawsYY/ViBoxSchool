@@ -159,7 +159,7 @@ export default function NotificationSettingsPage() {
             {error && <div className='lx-p-notification-settings-alert is-error' role='alert'>{error}</div>}
             {success && <div className='lx-p-notification-settings-alert is-success' role='status'>{success}</div>}
 
-            <div className='lx-p-notification-settings-layout'>
+            <div className={`lx-p-notification-settings-layout${showForm ? '' : ' lx-p-notification-settings-layout--full'}`}>
                 {showForm && (
                     <form className='lx-p-notification-settings-card lx-p-notification-settings-form' onSubmit={submit}>
                         <div className='lx-p-notification-settings-card-heading'>
