@@ -56,7 +56,7 @@ export class SchoolService {
     }
 
     async saveAcademicSettingsForRector(schoolId: string, settings: {
-        enrollmentPeriod: { startDate: string, endDate: string, lateFeePercentage: number, lateFeeDay: number, applyLateFee: boolean },
+        enrollmentPeriod: { startDate: string, endDate: string, lateFeePercentage: number, lateFeeDay: number, applyLateFee: boolean, pensionStartMonth: number, pensionEndMonth: number },
         gradePeriods: Array<{ gradeId?: string, name: string, maxCapacity: number, enrollmentFee: number, tuitionFee: number, billingFrequency: string }>
     }) {
         await this.findForRector(schoolId)
