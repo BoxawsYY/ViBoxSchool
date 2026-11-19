@@ -89,9 +89,12 @@ El directorio público filtra colegios suspendidos, inactivos, eliminados o no a
 | `POST` | `/enrollments` | Público | Crea un borrador de matrícula y devuelve un token de acceso temporal. |
 | `POST` | `/enrollments/:id/documents/upload-url` | Token de borrador | Emite URL/credenciales firmadas para cargar un documento al bucket privado. |
 | `POST` | `/enrollments/:id/documents` | Token de borrador | Verifica y registra el documento cargado. |
-| `GET` | `/enrollments/review-queue` | Rector, Secretaría | Cola de expedientes de matrícula pendientes del colegio. |
-| `GET` | `/enrollments/:enrollmentId/documents` | Rector, Secretaría | Tipos documentales requeridos y estado de cada uno. |
+| `GET` | `/enrollments/review-queue` | Rector, Secretaría | Cola de expedientes del colegio: incluye acudiente, documento del estudiante, última versión y banderas `hasRejections` / `hasPending`. |
+| `GET` | `/enrollments/:enrollmentId/documents` | Rector, Secretaría | Tipos documentales requeridos y estado por última versión; incluye datos del estudiante y del acudiente y la bandera `locked` (true cuando todos los obligatorios están aprobados). |
 | `PATCH` | `/enrollments/documents/:documentId/review` | Rector, Secretaría | Aprueba o rechaza un documento. El rechazo exige `observation`; ambos extremos envían correo al acudiente responsable (CU009 aprobado, CU010 con observación). |
+| `PATCH` | `/enrollments/:enrollmentId` | Secretaría | Corrige datos del estudiante y del acudiente (validados; sincroniza el correo/usuario del acudiente). Rechaza con 403 cuando todos los documentos obligatorios están aprobados ("Expediente verificado: solo lectura"). |
+
+Las rutas públicas de matrícula intentan autenticar si viene el token y registran al creador en `createdBy`; sin sesión válida actúan como público.
 
 Las rutas de documento y envío reciben el token del borrador mediante el header `x-enrollment-token`. El borrador tiene vencimiento y el backend valida colegio, periodo, cupos, tipo documental y metadatos/bytes de los archivos.
 

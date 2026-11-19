@@ -109,3 +109,9 @@ Para configurar la base de datos, el almacenamiento privado y los seeders, consu
 El panel permite consultar conceptos pendientes por estudiante y gestionar pagos en efectivo. El acudiente puede generar referencias de pago; Secretaría puede registrar el pago recibido, indicar fecha, observaciones y monto recibido, y emitir un comprobante PDF. El comprobante se puede descargar desde la interfaz autenticada de Secretaría y se envía al correo del acudiente cuando está disponible.
 
 Para detalles de endpoints y acceso, consulta [api/README.md](./api/README.md#pagos-payments). La interfaz de Secretaría está documentada en [app/README.md](./app/README.md#pagos-en-el-panel).
+
+## Módulo de matrículas
+
+El panel de Secretaría muestra la gestión de matrículas del colegio: cola de expedientes con búsqueda en vivo, filtros por grado/estado/pago, exportación a Excel, ver/editar los datos del estudiante y del acudiente y bloqueo automático cuando el expediente está 100 % verificado. El rector comparte la cola y la aprobación de documentos. El acudiente puede además iniciar la matrícula en línea con el wizard embebido desde el panel.
+
+Para detalles de endpoints y acceso, consulta [api/README.md#matrículas-enrollments](./api/README.md#matrículas-enrollments). La interfaz está documentada en [app/README.md#matrículas-en-el-panel](./app/README.md#matrículas-en-el-panel).
