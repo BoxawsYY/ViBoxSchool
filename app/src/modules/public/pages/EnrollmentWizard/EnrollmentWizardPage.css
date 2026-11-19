@@ -915,6 +915,21 @@ body:has(.lx-p-enrollment-start),
     }
 }
 
+.lx-enrollment-embedded {
+    --lx-enrollment-blue: var(--lx-color-accent);
+    --lx-enrollment-blue-dark: var(--lx-color-accent-dark);
+    --lx-enrollment-page: var(--lx-color-public-background);
+    --lx-enrollment-surface: var(--lx-color-public-surface);
+    --lx-enrollment-border: var(--lx-color-public-border);
+    --lx-enrollment-text: var(--lx-color-public-text);
+    --lx-enrollment-muted: var(--lx-color-public-text-muted);
+    padding: 14px 16px;
+    border-radius: 14px;
+    background: var(--lx-enrollment-page, #eef2f8);
+    color: var(--lx-enrollment-text);
+    font-family: var(--lx-font-family);
+}
+
 .lx-enrollment-embedded .lx-enrollment-shell {
     width: 100%;
     padding: 4px 4px 16px;
