@@ -21,6 +21,7 @@ import './enrollments/entities/EnrollmentDocument.entity.js'
 import './enrollments/entities/EnrollmentDraft.entity.js'
 import './enrollments/entities/EnrollmentDraftDocument.entity.js'
 import './notifications/entities/Notification.entity.js'
+import './notifications/entities/NotificationSetting.entity.js'
 
 dotenv.config()
 
