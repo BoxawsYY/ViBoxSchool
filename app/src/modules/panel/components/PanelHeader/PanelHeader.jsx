@@ -1,8 +1,10 @@
 import PropTypes from 'prop-types'
+import { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../../../core/contexts/AuthContext'
 import PlatformLogo from '../../../../core/components/PlatformLogo/PlatformLogo'
 import ThemeToggle from '../../../../core/components/ThemeToggle/ThemeToggle'
+import NotificationsRequester from '../../services/NotificationsRequester.mjs'
 import './PanelHeader.css'
 
 const ROLE_LABELS = {
@@ -51,6 +53,31 @@ const PanelHeader = ({ role, onOpenProfile }) => {
     const currentPath = location.pathname.replace(/\/+$/, '')
     const isNotificationsPage = Boolean(notificationPath && currentPath === notificationPath)
 
+    const [unreadCount, setUnreadCount] = useState(0)
+
+    useEffect(() => {
+        let cancelled = false
+
+        const load = async () => {
+            try {
+                const data = await NotificationsRequester.unreadCount()
+                if (!cancelled) setUnreadCount(data?.count ?? 0)
+            } catch {
+                if (!cancelled) setUnreadCount(0)
+            }
+        }
+
+        load()
+        window.addEventListener('notifications:changed', load)
+
+        return () => {
+            cancelled = true
+            window.removeEventListener('notifications:changed', load)
+        }
+    }, [location.pathname])
+
+    const hasUnread = unreadCount > 0
+
     return (
         <header className='lx-c-panel-header'>
             <div className='lx-c-panel-header-brand'>
@@ -67,7 +94,7 @@ const PanelHeader = ({ role, onOpenProfile }) => {
             <div className='lx-c-panel-header-actions'>
                 {isNotificationsPage ? (
                     <span
-                        className='lx-c-panel-header-notifications is-active'
+                        className={`lx-c-panel-header-notifications is-active${hasUnread ? ' has-unread' : ''}`}
                         aria-current='page'
                         aria-label='Ya estás en Notificaciones'
                         title='Ya estás en Notificaciones'
@@ -76,7 +103,7 @@ const PanelHeader = ({ role, onOpenProfile }) => {
                     </span>
                 ) : notificationPath ? (
                     <button
-                        className='lx-c-panel-header-notifications'
+                        className={`lx-c-panel-header-notifications${hasUnread ? ' has-unread' : ''}`}
                         type='button'
                         onClick={() => navigate(notificationPath)}
                         aria-label='Ir a Notificaciones'

@@ -107,6 +107,11 @@
     border: 1px solid var(--lx-color-surface);
     border-radius: var(--lx-border-radius-circle);
     background: var(--lx-color-tenant);
+    display: none;
+}
+
+.lx-c-panel-header-notifications.has-unread::after {
+    display: block;
 }
 
 .lx-c-panel-header-notifications:hover,

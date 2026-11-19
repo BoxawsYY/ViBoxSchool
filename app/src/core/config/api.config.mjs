@@ -24,6 +24,10 @@ export const API = {
         DISCOVER: 'discover',
     }),
     ENROLLMENTS: new EndpointGroup(`${URL_BASE}/enrollments`),
+    NOTIFICATIONS: new EndpointGroup(`${URL_BASE}/notifications`, {
+        UNREAD_COUNT: 'unread-count',
+        READ_ALL: 'read-all',
+    }),
     ADMIN_USERS: new EndpointGroup(`${URL_BASE}/admin/users`, {
         SUMMARY: 'summary',
     }),
