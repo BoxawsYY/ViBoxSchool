@@ -4,6 +4,7 @@ import Modal from '../../../../core/components/Modal/Modal'
 import { useAuth } from '../../../../core/contexts/AuthContext'
 import EnrollmentsRequester from '../../services/EnrollmentsRequester.mjs'
 import EnrollmentWizardContent from '../../../public/pages/EnrollmentWizard/EnrollmentWizardContent'
+import '../../../public/pages/EnrollmentWizard/EnrollmentWizardPage.css'
 
 const PAGE_SIZE = 10
 
@@ -375,36 +376,88 @@ const SecretaryEnrollmentsPage = () => {
                         {detailLoading ? <p className='se-state' role='status'>Cargando…</p>
                             : detailError ? <p className='se-error' role='alert'>{detailError}</p>
                             : editMode ? (
-                                <form className='se-form' onSubmit={(event) => { event.preventDefault(); saveForm() }}>
-                                    <p className='se-form-heading'><span className='material-symbols-rounded' aria-hidden='true'>person</span>Datos del estudiante</p>
-                                    <div className='se-form-grid'>
-                                        <label className='se-field se-field-full'><span>Nombre</span><input type='text' value={form.student.name} onChange={updateField('student', 'name')} required /></label>
-                                        <label className='se-field'><span>Tipo doc.</span><select value={form.student.documentType} onChange={updateField('student', 'documentType')}><option value='RC'>RC</option><option value='TI'>T.I.</option><option value='CC'>C.C.</option><option value='CE'>C.E.</option><option value='PA'>Pasaporte</option></select></label>
-                                        <label className='se-field'><span>Número de documento</span><input type='text' value={form.student.documentNumber} onChange={updateField('student', 'documentNumber')} /></label>
-                                        <label className='se-field'><span>Género</span><select value={form.student.gender} onChange={updateField('student', 'gender')}><option value=''>—</option><option value='F'>F</option><option value='M'>M</option><option value='O'>Otro</option></select></label>
-                                        <label className='se-field'><span>Fecha nacimiento</span><input type='date' value={form.student.birthDate} onChange={updateField('student', 'birthDate')} /></label>
-                                        <label className='se-field'><span>Teléfono</span><input type='text' value={form.student.phone} onChange={updateField('student', 'phone')} /></label>
-                                        <label className='se-field'><span>Turno</span><select value={form.student.shift} onChange={updateField('student', 'shift')}><option value='morning'>Mañana</option><option value='afternoon'>Tarde</option></select></label>
-                                        <label className='se-field se-field-full'><span>Dirección</span><input type='text' value={form.student.address} onChange={updateField('student', 'address')} /></label>
-                                        <label className='se-field se-field-full'><span>Colegio anterior</span><input type='text' value={form.student.previousSchool} onChange={updateField('student', 'previousSchool')} /></label>
-                                    </div>
+                                <form className='lx-enrollment-form se-edit-form' onSubmit={(event) => { event.preventDefault(); saveForm() }}>
+                                    <section className='lx-enrollment-card-section'>
+                                        <h2>Datos del estudiante</h2>
+                                        <div className='lx-enrollment-fields'>
+                                            <label className='lx-enrollment-field-full'>Nombre completo
+                                                <input name='name' value={form.student.name} onChange={updateField('student', 'name')} required maxLength='160' autoComplete='name' />
+                                            </label>
+                                            <label>Tipo de documento
+                                                <select name='documentType' value={form.student.documentType} onChange={updateField('student', 'documentType')} required>
+                                                    <option value='RC'>Registro civil</option><option value='TI'>Tarjeta de identidad</option><option value='CC'>Cédula de ciudadanía</option><option value='CE'>Cédula de extranjería</option><option value='PA'>Pasaporte</option><option value='PPT'>PPT</option>
+                                                </select>
+                                            </label>
+                                            <label>Número de documento
+                                                <input name='documentNumber' value={form.student.documentNumber} onChange={updateField('student', 'documentNumber')} inputMode='numeric' maxLength='20' />
+                                            </label>
+                                            <label>Género
+                                                <select name='gender' value={form.student.gender} onChange={updateField('student', 'gender')}>
+                                                    <option value=''>—</option><option value='F'>Femenino</option><option value='M'>Masculino</option><option value='O'>Otro</option>
+                                                </select>
+                                            </label>
+                                            <label>Fecha de nacimiento
+                                                <input name='birthDate' type='date' value={form.student.birthDate} onChange={updateField('student', 'birthDate')} />
+                                            </label>
+                                            <label>Teléfono de contacto
+                                                <input name='phone' value={form.student.phone} onChange={updateField('student', 'phone')} inputMode='tel' maxLength='20' />
+                                            </label>
+                                            <label>Jornada
+                                                <select name='shift' value={form.student.shift} onChange={updateField('student', 'shift')}>
+                                                    <option value='morning'>Mañana</option><option value='afternoon'>Tarde</option>
+                                                </select>
+                                            </label>
+                                            <label className='lx-enrollment-field-full'>Dirección de residencia
+                                                <input name='address' value={form.student.address} onChange={updateField('student', 'address')} maxLength='200' autoComplete='street-address' />
+                                            </label>
+                                            <label className='lx-enrollment-field-full'>Colegio anterior
+                                                <input name='previousSchool' value={form.student.previousSchool} onChange={updateField('student', 'previousSchool')} maxLength='160' />
+                                            </label>
+                                        </div>
+                                    </section>
 
-                                    <p className='se-form-heading'><span className='material-symbols-rounded' aria-hidden='true'>diversity_2</span>Datos del acudiente</p>
-                                    <div className='se-form-grid'>
-                                        <label className='se-field se-field-full'><span>Nombre</span><input type='text' value={form.guardian.name} onChange={updateField('guardian', 'name')} required /></label>
-                                        <label className='se-field'><span>Tipo doc.</span><select value={form.guardian.documentType} onChange={updateField('guardian', 'documentType')}><option value='CC'>C.C.</option><option value='TI'>T.I.</option><option value='CE'>C.E.</option><option value='PA'>Pasaporte</option></select></label>
-                                        <label className='se-field'><span>Número de documento</span><input type='text' value={form.guardian.documentNumber} onChange={updateField('guardian', 'documentNumber')} /></label>
-                                        <label className='se-field'><span>Correo</span><input type='email' value={form.guardian.email} onChange={updateField('guardian', 'email')} /></label>
-                                        <label className='se-field'><span>Teléfono</span><input type='text' value={form.guardian.phone} onChange={updateField('guardian', 'phone')} /></label>
-                                        <label className='se-field'><span>WhatsApp</span><input type='text' value={form.guardian.whatsapp} onChange={updateField('guardian', 'whatsapp')} /></label>
-                                        <label className='se-field se-field-full'><span>Dirección</span><input type='text' value={form.guardian.address} onChange={updateField('guardian', 'address')} /></label>
-                                        <label className='se-field'><span>Parentesco</span><select value={form.guardian.relationship} onChange={updateField('guardian', 'relationship')}>{RELATIONSHIPS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
-                                        <label className='se-field'><span>Responsable de pago</span><select value={String(form.guardian.isPaymentResponsible)} onChange={(event) => setForm((current) => ({ ...current, guardian: { ...current.guardian, isPaymentResponsible: event.target.value === 'true' } }))}><option value='true'>Sí</option><option value='false'>No</option></select></label>
-                                        <label className='se-field se-check'><span>Notificaciones por correo</span><input type='checkbox' checked={Boolean(form.guardian.emailNotifications)} onChange={updateField('guardian', 'emailNotifications')} /></label>
-                                        <label className='se-field se-check'><span>Notificaciones por WhatsApp</span><input type='checkbox' checked={Boolean(form.guardian.whatsappNotifications)} onChange={updateField('guardian', 'whatsappNotifications')} /></label>
-                                    </div>
+                                    <section className='lx-enrollment-card-section'>
+                                        <h2>Datos del acudiente</h2>
+                                        <div className='lx-enrollment-fields'>
+                                            <label className='lx-enrollment-field-full'>Nombre completo
+                                                <input name='name' value={form.guardian.name} onChange={updateField('guardian', 'name')} required maxLength='160' autoComplete='name' />
+                                            </label>
+                                            <label>Tipo de documento
+                                                <select name='documentType' value={form.guardian.documentType} onChange={updateField('guardian', 'documentType')} required>
+                                                    <option value='CC'>Cédula de ciudadanía</option><option value='CE'>Cédula de extranjería</option><option value='TI'>Tarjeta de identidad</option><option value='PA'>Pasaporte</option><option value='PPT'>PPT</option>
+                                                </select>
+                                            </label>
+                                            <label>Número de documento
+                                                <input name='documentNumber' value={form.guardian.documentNumber} onChange={updateField('guardian', 'documentNumber')} inputMode='numeric' maxLength='20' />
+                                            </label>
+                                            <label>Correo electrónico
+                                                <input name='email' type='email' value={form.guardian.email} onChange={updateField('guardian', 'email')} autoComplete='email' maxLength='160' />
+                                            </label>
+                                            <label>Teléfono de contacto
+                                                <input name='phone' value={form.guardian.phone} onChange={updateField('guardian', 'phone')} inputMode='tel' maxLength='20' />
+                                            </label>
+                                            <label>WhatsApp
+                                                <input name='whatsapp' value={form.guardian.whatsapp} onChange={updateField('guardian', 'whatsapp')} inputMode='tel' maxLength='20' />
+                                            </label>
+                                            <label>Parentesco
+                                                <select name='relationship' value={form.guardian.relationship} onChange={updateField('guardian', 'relationship')}>
+                                                    {RELATIONSHIPS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+                                                </select>
+                                            </label>
+                                            <label className='lx-enrollment-field-full'>Dirección de residencia
+                                                <input name='address' value={form.guardian.address} onChange={updateField('guardian', 'address')} maxLength='200' autoComplete='street-address' />
+                                            </label>
+                                            <label>Responsable de pago
+                                                <select name='isPaymentResponsible' value={String(form.guardian.isPaymentResponsible)} onChange={(event) => setForm((current) => ({ ...current, guardian: { ...current.guardian, isPaymentResponsible: event.target.value === 'true' } }))}>
+                                                    <option value='true'>Sí</option><option value='false'>No</option>
+                                                </select>
+                                            </label>
+                                            <label className='lx-enrollment-checkbox'><input type='checkbox' checked={Boolean(form.guardian.emailNotifications)} onChange={updateField('guardian', 'emailNotifications')} /> Notificaciones por correo</label>
+                                            <label className='lx-enrollment-checkbox'><input type='checkbox' checked={Boolean(form.guardian.whatsappNotifications)} onChange={updateField('guardian', 'whatsappNotifications')} /> Notificaciones por WhatsApp</label>
+                                        </div>
+                                    </section>
 
-                                    {saveError && <p className='se-error' role='alert'>{saveError}</p>}
+                                    {saveError && <p className='lx-enrollment-alert' role='alert'>{saveError}</p>}
                                     <div className='se-form-actions'>
                                         <button type='button' className='se-btn se-btn-ghost' onClick={() => setEditMode(false)} disabled={saving}>Cancelar</button>
                                         <button type='submit' className='se-btn se-btn-primary' disabled={saving}>{saving ? 'Guardando…' : 'Guardar cambios'}</button>
