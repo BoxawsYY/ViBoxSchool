@@ -94,7 +94,7 @@ export class EnrollmentRepository extends BaseRepository<EnrollmentDraft> {
         const enrollmentResult = await this.db.query(`
             SELECT e."id" AS "enrollmentId", e."fileNumber", e."requestedAt", e."periodId", e."status" AS "enrollmentStatus",
                 st."id" AS "studentId", st."name" AS "studentName", st."documentType", st."documentNumber",
-                g."id" AS "gradeId", g."name" AS "grade", ep."academicYear"
+                g."id" AS "gradeId", g."name" AS "grade", ep."academicYear", e."shift"
             FROM "Enrollments" e
             JOIN "Students" st ON st."id" = e."studentId"
             JOIN "GradePeriods" gp ON gp."id" = e."gradePeriodId"
@@ -128,7 +128,172 @@ export class EnrollmentRepository extends BaseRepository<EnrollmentDraft> {
                 AND dt."status" = 'active' AND dt."isActive" = TRUE AND dt."isDeleted" = FALSE
             ORDER BY dt."name" ASC
         `, [enrollmentId, schoolId, enrollment.periodId, enrollment.gradeId])
-        return { enrollment, documents: documentsResult.rows }
+
+        const studentResult = await this.db.query(`
+            SELECT "name", "documentType", "documentNumber", "gender", "birthDate",
+                "phone", "address", "previousSchool"
+            FROM "Students"
+            WHERE "id" = $1 AND "isDeleted" = FALSE
+        `, [enrollment.studentId])
+
+        const guardianResult = await this.db.query(`
+            SELECT g."id" AS "guardianId", u."id" AS "userId",
+                u."name", u."documentType" AS "documentType", u."documentNumber" AS "documentNumber",
+                u."email", g."whatsapp", g."phone", g."address",
+                sg."relationship", sg."isPaymentResponsible",
+                g."emailNotifications", g."whatsappNotifications"
+            FROM "Guardians" g
+            JOIN "Users" u ON u."id" = g."userId" AND u."isDeleted" = FALSE
+            JOIN "StudentGuardians" sg ON sg."guardianId" = g."id"
+                AND sg."studentId" = $1 AND sg."isDeleted" = FALSE AND sg."isActive" = TRUE
+            WHERE g."isDeleted" = FALSE AND g."isActive" = TRUE
+            ORDER BY sg."isPaymentResponsible" DESC NULLS LAST
+            LIMIT 1
+        `, [enrollment.studentId])
+
+        return {
+            enrollment,
+            student: studentResult.rows[0] ? { ...studentResult.rows[0], shift: enrollment.shift ?? null } : null,
+            guardian: guardianResult.rows[0] ?? null,
+            documents: documentsResult.rows
+        }
+    }
+
+    async updateEnrollmentData(schoolId: string, enrollmentId: string, student: Record<string, any> | undefined, guardian: Record<string, any> | undefined, actor: string) {
+        return this.db.transaction(async (client) => {
+            const enrollmentRow = await client.query(`
+                SELECT e."id", e."studentId", e."gradePeriodId", gp."gradeId", gp."schoolId" AS "schoolId", gp."periodId"
+                FROM "Enrollments" e
+                JOIN "GradePeriods" gp ON gp."id" = e."gradePeriodId"
+                WHERE e."id" = $1 AND e."schoolId" = $2 AND e."isDeleted" = FALSE
+                LIMIT 1
+            `, [enrollmentId, schoolId])
+            const enrollment = enrollmentRow.rows[0]
+            if (!enrollment) return null
+
+            const lockResult = await client.query(`
+                WITH required AS (
+                    SELECT gdt."documentTypeId"
+                    FROM "GradeDocumentTypes" gdt
+                    JOIN "GradePeriods" gp ON gp."id" = $1 AND gp."gradeId" = gdt."gradeId" AND gp."schoolId" = gdt."schoolId"
+                    WHERE gdt."schoolId" = $2
+                        AND gdt."isRequired" = TRUE AND gdt."status" = 'active'
+                        AND gdt."isActive" = TRUE AND gdt."isDeleted" = FALSE
+                ),
+                latest AS (
+                    SELECT DISTINCT ON (ed."documentTypeId") ed."documentTypeId", ed."status"
+                    FROM "EnrollmentDocuments" ed
+                    WHERE ed."enrollmentId" = $3 AND ed."isDeleted" = FALSE
+                    ORDER BY ed."documentTypeId", ed."version" DESC, ed."createdAt" DESC
+                )
+                SELECT
+                    (SELECT COUNT(*) FROM required)::INTEGER AS "requiredCount",
+                    (SELECT COUNT(*) FROM required r
+                     LEFT JOIN latest l ON l."documentTypeId" = r."documentTypeId"
+                     WHERE l."status" IS DISTINCT FROM 'approved')::INTEGER AS "pendingCount"
+            `, [enrollment.gradePeriodId, schoolId, enrollmentId])
+            const lock = lockResult.rows[0] || { requiredCount: 0, pendingCount: 0 }
+            if (Number(lock.requiredCount) > 0 && Number(lock.pendingCount) === 0) {
+                const err = new Error('El expediente no se puede modificar porque todos los documentos fueron verificados') as any
+                err.code = 'ENROLLMENT_LOCKED'
+                throw err
+            }
+
+            if (student && student.shift !== undefined) {
+                await client.query(`
+                    UPDATE "Enrollments" SET "shift" = $3, "updatedAt" = NOW(), "updatedBy" = $4
+                    WHERE "id" = $1 AND "schoolId" = $2
+                `, [enrollmentId, schoolId, student.shift, actor])
+            }
+
+            if (student && Object.keys(student).length > 0) {
+                const columns = ['name', 'documentType', 'documentNumber', 'gender', 'birthDate', 'phone', 'address', 'previousSchool']
+                const sets: string[] = []
+                const values: any[] = [enrollment.studentId]
+                for (const col of columns) {
+                    if (student[col] !== undefined) {
+                        values.push(student[col])
+                        sets.push(`"${col}" = $${values.length}`)
+                    }
+                }
+                if (sets.length) {
+                    values.push(actor)
+                    sets.push('"updatedAt" = NOW()', `"updatedBy" = $${values.length}`)
+                    await client.query(`
+                        UPDATE "Students" SET ${sets.join(', ')} WHERE "id" = $1 AND "isDeleted" = FALSE
+                    `, values)
+                }
+            }
+
+            if (guardian && Object.keys(guardian).length > 0) {
+                const linkResult = await client.query(`
+                    SELECT g."id" AS "guardianId", u."id" AS "userId"
+                    FROM "Guardians" g
+                    JOIN "Users" u ON u."id" = g."userId"
+                    JOIN "StudentGuardians" sg ON sg."guardianId" = g."id"
+                        AND sg."studentId" = $1 AND sg."isDeleted" = FALSE AND sg."isActive" = TRUE
+                    WHERE g."isDeleted" = FALSE AND g."isActive" = TRUE
+                    ORDER BY sg."isPaymentResponsible" DESC NULLS LAST
+                    LIMIT 1
+                `, [enrollment.studentId])
+                const link = linkResult.rows[0]
+                if (link) {
+                    const guardianUsers: string[] = []
+                    const guardianValues: any[] = [link.userId]
+                    for (const col of ['name', 'documentType', 'documentNumber'] as const) {
+                        if (guardian[col] !== undefined) {
+                            guardianValues.push(guardian[col])
+                            guardianUsers.push(`"${col}" = $${guardianValues.length}`)
+                        }
+                    }
+                    if (guardian.email !== undefined) {
+                        guardianValues.push(guardian.email)
+                        guardianUsers.push(`"email" = $${guardianValues.length}`, `"username" = $${guardianValues.length}`)
+                    }
+                    if (guardianUsers.length) {
+                        guardianValues.push(actor)
+                        guardianUsers.push('"updatedAt" = NOW()', `"updatedBy" = $${guardianValues.length}`)
+                        await client.query(`
+                            UPDATE "Users" SET ${guardianUsers.join(', ')} WHERE "id" = $1 AND "isDeleted" = FALSE
+                        `, guardianValues)
+                    }
+
+                    const guardianSets: string[] = []
+                    const guardianVals: any[] = [link.guardianId]
+                    for (const col of ['whatsapp', 'phone', 'address', 'emailNotifications', 'whatsappNotifications'] as const) {
+                        if (guardian[col] !== undefined) {
+                            guardianVals.push(guardian[col])
+                            guardianSets.push(`"${col}" = $${guardianVals.length}`)
+                        }
+                    }
+                    if (guardianSets.length) {
+                        guardianVals.push(actor)
+                        guardianSets.push('"updatedAt" = NOW()', `"updatedBy" = $${guardianVals.length}`)
+                        await client.query(`
+                            UPDATE "Guardians" SET ${guardianSets.join(', ')} WHERE "id" = $1 AND "isDeleted" = FALSE
+                        `, guardianVals)
+                    }
+
+                    const linkSets: string[] = []
+                    const linkVals: any[] = [link.guardianId, enrollment.studentId]
+                    for (const col of ['relationship', 'isPaymentResponsible'] as const) {
+                        if (guardian[col] !== undefined) {
+                            linkVals.push(guardian[col])
+                            linkSets.push(`"${col}" = $${linkVals.length}`)
+                        }
+                    }
+                    if (linkSets.length) {
+                        linkVals.push(actor)
+                        linkSets.push('"updatedAt" = NOW()', `"updatedBy" = $${linkVals.length}`)
+                        await client.query(`
+                            UPDATE "StudentGuardians" SET ${linkSets.join(', ')} WHERE "guardianId" = $1 AND "studentId" = $2
+                        `, linkVals)
+                    }
+                }
+            }
+
+            return { updated: true }
+        })
     }
 
     async reviewEnrollmentDocument(schoolId: string, documentId: string, decision: 'approved' | 'rejected', observation: string | null, reviewerId?: string) {

@@ -19,6 +19,21 @@ export class EnrollmentController {
         return response.status(200).json(enrollments)
     }
 
+    @Patch('/:enrollmentId')
+    @Roles([ROLES.SECRETARY])
+    async updateEnrollment(request, response) {
+        const schoolId = request.user?.schoolId || request.user?.school?.id
+        const { enrollmentId } = request.params || {}
+        if (!schoolId) throw new InvalidFormatError('El usuario no tiene un colegio asociado')
+        if (typeof enrollmentId !== 'string' || !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(enrollmentId)) {
+            throw new InvalidFormatError('enrollmentId debe ser un UUID válido')
+        }
+        const result = await this.enrollmentService.updateEnrollmentData(
+            schoolId, enrollmentId, request.body || {}, request.user?.username ?? 'Public'
+        )
+        return response.status(200).json(result)
+    }
+
     @Get('/:enrollmentId/documents')
     @Roles([ROLES.RECTOR, ROLES.SECRETARY])
     async findEnrollmentReview(request, response) {

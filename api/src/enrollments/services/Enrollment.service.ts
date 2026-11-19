@@ -4,6 +4,7 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { Inject, Service } from '../../core/decorators/decorators.js'
 import { InvalidFormatError } from '../../core/errors/InvalidFormat.error.js'
 import { NotFoundError } from '../../core/errors/NotFound.error.js'
+import { ForbiddenError } from '../../core/errors/Forbidden.error.js'
 import EnrollmentRepository from '../repositories/Enrollment.repository.js'
 import NotificationEmitterService from '../../notifications/services/NotificationEmitter.service.js'
 import EmailEmitterService from '../../notifications/services/EmailEmitterService.js'
@@ -81,7 +82,9 @@ export class EnrollmentService {
             }
             return { ...document, signedUrl: data.signedUrl }
         }))
-        return { ...review, documents }
+        const required = Array.isArray(review.documents) ? review.documents : []
+        const locked = required.length > 0 && required.every((document: any) => document.status === 'approved')
+        return { ...review, documents, locked }
     }
 
     async reviewDocument(schoolId: string, id: string, decision: 'approved' | 'rejected', observation: string | null, reviewerId?: string) {
@@ -118,6 +121,84 @@ export class EnrollmentService {
             }
         }
         return document
+    }
+
+    async updateEnrollmentData(schoolId: string, enrollmentId: string, input: Record<string, any>, actor: string = 'Public') {
+        const { student, guardian } = input || {}
+        if (student !== undefined && (typeof student !== 'object' || student === null || Array.isArray(student))) {
+            throw new InvalidFormatError('student debe ser un objeto')
+        }
+        if (guardian !== undefined && (typeof guardian !== 'object' || guardian === null || Array.isArray(guardian))) {
+            throw new InvalidFormatError('guardian debe ser un objeto')
+        }
+        if ((!student || Object.keys(student).length === 0) && (!guardian || Object.keys(guardian).length === 0)) {
+            throw new InvalidFormatError('Debes enviar student o guardian para actualizar')
+        }
+        const studentFields = [
+            'name', 'documentType', 'documentNumber', 'gender', 'birthDate',
+            'phone', 'address', 'previousSchool', 'shift'
+        ]
+        const guardianFields = [
+            'name', 'documentType', 'documentNumber', 'email', 'phone', 'whatsapp', 'address',
+            'relationship', 'isPaymentResponsible', 'emailNotifications', 'whatsappNotifications'
+        ]
+        const cleanStudent = student
+            ? cleanFields(student, studentFields)
+            : undefined
+        const cleanGuardian = guardian
+            ? cleanFields(guardian, guardianFields)
+            : undefined
+
+        for (const [objectName, object] of [['student', cleanStudent], ['guardian', cleanGuardian]] as const) {
+            if (!object) continue
+            for (const [key, value] of Object.entries(object)) {
+                const stringLike = !['birthDate', 'isPaymentResponsible', 'emailNotifications', 'whatsappNotifications'].includes(key)
+                if (stringLike && typeof value !== 'string') {
+                    throw new InvalidFormatError(`${objectName}.${key} debe ser texto`)
+                }
+            }
+        }
+
+        if (cleanStudent?.gender !== undefined && !['F', 'M', 'O'].includes(String(cleanStudent.gender))) {
+            throw new InvalidFormatError('gender debe ser F, M u O')
+        }
+        if (cleanStudent?.shift !== undefined && !['morning', 'afternoon'].includes(String(cleanStudent.shift))) {
+            throw new InvalidFormatError('shift debe ser morning o afternoon')
+        }
+        if (cleanStudent?.birthDate !== undefined) {
+            const parsed = new Date(`${cleanStudent.birthDate}T00:00:00`)
+            if (Number.isNaN(parsed.getTime())) {
+                throw new InvalidFormatError('birthDate debe ser una fecha válida')
+            }
+        }
+        if (cleanGuardian?.email !== undefined) {
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(cleanGuardian.email))) {
+                throw new InvalidFormatError('El correo del acudiente no es válido')
+            }
+            cleanGuardian.email = String(cleanGuardian.email).toLowerCase()
+        }
+        if (cleanGuardian?.relationship !== undefined
+            && !RELATIONSHIPS.includes(String(cleanGuardian.relationship))) {
+            throw new InvalidFormatError(`relationship debe ser uno de: ${RELATIONSHIPS.join(', ')}`)
+        }
+        for (const field of ['isPaymentResponsible', 'emailNotifications', 'whatsappNotifications'] as const) {
+            if (cleanGuardian?.[field] !== undefined && typeof cleanGuardian[field] !== 'boolean') {
+                throw new InvalidFormatError(`${field} debe ser booleano`)
+            }
+        }
+
+        try {
+            const result = await this.enrollmentRepository.updateEnrollmentData(
+                schoolId, enrollmentId, cleanStudent, cleanGuardian, actor
+            )
+            if (!result) throw new NotFoundError('El expediente no existe')
+            return result
+        } catch (error: any) {
+            if (error?.code === 'ENROLLMENT_LOCKED') {
+                throw new ForbiddenError('El expediente no se puede modificar porque todos los documentos fueron verificados')
+            }
+            throw error
+        }
     }
 
     async createDraft(input: Record<string, any>, actor: string = 'Public') {
