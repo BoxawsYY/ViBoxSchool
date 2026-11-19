@@ -88,22 +88,33 @@ export class EnrollmentService {
         const document = await this.enrollmentRepository.reviewEnrollmentDocument(schoolId, id, decision, observation, reviewerId)
         if (!document) throw new NotFoundError('El documento no existe en este colegio')
 
-        if (decision === 'rejected' && observation?.trim() && document.id) {
+        if (document.id) {
             const context = await this.enrollmentRepository.findEnrollmentEmailContext(document.id).catch((error) => {
-                console.error('[Enrollment] No se pudo resolver el acudiente para el correo de observación', error)
+                console.error('[Enrollment] No se pudo resolver el acudiente para el correo', error)
                 return null
             })
 
             if (context?.guardianEmail && context.emailNotifications !== false) {
-                this.emailEmitter.observationRejected({
-                    schoolId,
-                    to: context.guardianEmail,
-                    studentName: context.studentName || 'Estudiante',
-                    fileNumber: context.fileNumber || document.id,
-                    observation: observation.trim()
-                }).catch((error) => {
-                    console.error('[Enrollment] No se pudo emitir el correo de observación', error)
-                })
+                if (decision === 'rejected' && observation?.trim()) {
+                    this.emailEmitter.observationRejected({
+                        schoolId,
+                        to: context.guardianEmail,
+                        studentName: context.studentName || 'Estudiante',
+                        fileNumber: context.fileNumber || document.id,
+                        observation: observation.trim()
+                    }).catch((error) => {
+                        console.error('[Enrollment] No se pudo emitir el correo de observación', error)
+                    })
+                } else if (decision === 'approved') {
+                    this.emailEmitter.documentApproved({
+                        schoolId,
+                        to: context.guardianEmail,
+                        studentName: context.studentName || 'Estudiante',
+                        fileNumber: context.fileNumber || document.id
+                    }).catch((error) => {
+                        console.error('[Enrollment] No se pudo emitir el correo de aprobación', error)
+                    })
+                }
             }
         }
         return document

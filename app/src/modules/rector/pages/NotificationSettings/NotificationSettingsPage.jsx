@@ -9,6 +9,7 @@ const EVENT_TYPE_LABELS = {
     late_payment: 'Pensión vencida',
     documents_pending: 'Documentos pendientes',
     observation: 'Observación de documento',
+    document_approved: 'Documentos aprobados',
     payment_confirmation: 'Pago confirmado',
     enrollment_confirmation: 'Matrícula confirmada',
     new_enrollment_request: 'Nueva solicitud de matrícula',

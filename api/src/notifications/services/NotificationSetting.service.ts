@@ -10,6 +10,7 @@ export const SETTING_EVENT_TYPES = [
     'late_payment',
     'documents_pending',
     'observation',
+    'document_approved',
     'payment_confirmation',
     'enrollment_confirmation',
     'new_enrollment_request',

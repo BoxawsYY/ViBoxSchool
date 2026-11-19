@@ -22,6 +22,22 @@ export interface ObservationEmailInput {
     observation: string
 }
 
+export interface DocumentApprovedEmailInput {
+    schoolId: string
+    to: string
+    studentName: string
+    fileNumber: string
+}
+
+interface DeliverInput {
+    schoolId: string
+    settingId: string | null
+    eventType: string
+    to: string
+    subject: string
+    content: string
+}
+
 @Service()
 export class EmailEmitterService {
 
@@ -36,7 +52,7 @@ export class EmailEmitterService {
         const setting = await this.notificationSettingRepository.findBySchoolEventChannel(
             input.schoolId, 'observation', 'email'
         )
-        if (setting?.status === 'inactive') return { sent: false, skipped: 'setting_inactive' as const }
+        if (setting?.status === 'inactive') return { sent: false as const, skipped: 'setting_inactive' as const }
 
         const subject = `Observación sobre el expediente ${input.fileNumber}`
         const content = setting?.template
@@ -47,6 +63,41 @@ export class EmailEmitterService {
             })
             : `Hola ${input.studentName}:\n\nEl colegio encontró una observación en el expediente ${input.fileNumber}:\n${input.observation}\n\nIngresa al módulo de matrícula para corregirla.\n\n— ViBoxSchool`
 
+        return this.deliver({
+            schoolId: input.schoolId,
+            settingId: setting?.id ?? null,
+            eventType: 'observation',
+            to: input.to,
+            subject,
+            content
+        })
+    }
+
+    async documentApproved(input: DocumentApprovedEmailInput) {
+        const setting = await this.notificationSettingRepository.findBySchoolEventChannel(
+            input.schoolId, 'document_approved', 'email'
+        )
+        if (setting?.status === 'inactive') return { sent: false as const, skipped: 'setting_inactive' as const }
+
+        const subject = `Documentos aprobados ${input.fileNumber}`
+        const content = setting?.template
+            ? renderTemplate(setting.template, {
+                studentName: input.studentName,
+                fileNumber: input.fileNumber
+            })
+            : `Hola ${input.studentName}:\n\nLos documentos de tu expediente ${input.fileNumber} fueron aprobados.\nYa puedes pagar la matrícula.\n\n— ViBoxSchool`
+
+        return this.deliver({
+            schoolId: input.schoolId,
+            settingId: setting?.id ?? null,
+            eventType: 'document_approved',
+            to: input.to,
+            subject,
+            content
+        })
+    }
+
+    private async deliver(input: DeliverInput) {
         const provider = getEmailProvider()
         const providerName = getEmailProviderName()
 
@@ -56,7 +107,7 @@ export class EmailEmitterService {
 
         while (attempts < MAX_ATTEMPTS) {
             attempts += 1
-            result = await provider.send(input.to, subject, content)
+            result = await provider.send(input.to, input.subject, input.content)
             if (result.ok) break
 
             lastError = result.error || `Error desconocido (intento ${attempts})`
@@ -67,12 +118,12 @@ export class EmailEmitterService {
 
         await this.notificationDeliveryRepository.record({
             schoolId: input.schoolId,
-            settingId: setting?.id ?? null,
-            eventType: 'observation',
+            settingId: input.settingId,
+            eventType: input.eventType,
             channel: 'email',
             provider: providerName,
             destination: input.to,
-            subject,
+            subject: input.subject,
             status: result.ok ? 'sent' : 'failed',
             attempts,
             externalId: result.externalId ?? null,
@@ -81,7 +132,7 @@ export class EmailEmitterService {
         })
 
         if (!result.ok) {
-            console.error(`[EmailEmitter] Observación para ${input.to} falló tras ${attempts} intento(s): ${lastError}`)
+            console.error(`[EmailEmitter] ${input.eventType} para ${input.to} falló tras ${attempts} intento(s): ${lastError}`)
         }
         return result.ok
             ? { sent: true as const, attempts }
