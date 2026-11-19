@@ -186,3 +186,20 @@ Crea el bucket privado `enrollment-documents`. Configura `SUPABASE_URL` y `SUPAB
 | `pnpm run build` | Compilación TypeScript. |
 | `pnpm start` | Ejecuta `dist/index.js`. |
 | `pnpm run seed:demo-accounts` | Crea/actualiza las cuentas de demostración. |
+
+### Pagos (`/payments`)
+
+El módulo registra pagos de matrícula, pensión y recargos por mora. Los endpoints protegidos requieren sesión y restringen los datos al colegio del usuario.
+
+| Método | Ruta | Acceso | Descripción |
+|---|---|---|---|
+| `GET` | `/payments/payables` | Guardian | Lista conceptos pendientes del acudiente responsable de pago. |
+| `POST` | `/payments/cash` | Guardian | Crea una referencia pendiente para pago presencial en efectivo. Recibe `concepts` con `id` y `concept`. |
+| `POST` | `/payments/pse` | Guardian | Preparación de PSE en desarrollo; invalida referencias de efectivo superpuestas. |
+| `GET` | `/payments/students?q=` | Secretary | Busca estudiantes del colegio para registrar pagos. |
+| `GET` | `/payments/students/:studentId/payables` | Secretary | Consulta los conceptos pendientes de un estudiante. |
+| `GET` | `/payments/reference/:referenceNumber` | Secretary | Consulta una referencia de efectivo pendiente. |
+| `POST` | `/payments/cash/register` | Secretary | Registra un pago en efectivo. Recibe `studentId`, `concepts`, `amountReceived` y, opcionalmente, `referenceNumber`, `paymentDate` (`YYYY-MM-DD`) y `observations`. Emite el recibo PDF y envía correo al acudiente si tiene email. Un fallo de correo no invalida el pago registrado. |
+| `GET` | `/payments/receipts/:receiptId` | Secretary, Guardian | Devuelve el PDF del recibo; Secretaría queda limitada al colegio de su sesión y Guardian a sus pagos. |
+
+Los recibos se almacenan en `Receipts` junto con el pago asociado. La migración SQL específica está en `src/payments/migrations/001-payments-references.sql`; aplícala a la base de datos antes de usar el módulo si esas tablas/columnas aún no existen. Para bajar el PDF desde navegador se debe enviar el JWT en `Authorization` (la interfaz de Secretaría lo hace mediante descarga autenticada).
