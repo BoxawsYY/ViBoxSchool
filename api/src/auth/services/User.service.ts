@@ -120,7 +120,9 @@ export class UserService {
 
         await this.userRepository.update(user.id, { isOnline: true, lastLogin: new Date() })
 
-        return { token, user, roles, permissions }
+        const enriched = await this.userRepository.findById(user.id, false, { relations: ['school'] })
+
+        return { token, user: enriched || user, roles, permissions }
     }
 
     async logout(token: string, userId: string) {

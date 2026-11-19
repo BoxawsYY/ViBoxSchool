@@ -50,6 +50,11 @@ export class AuthenticationController {
 
         const { token, user, roles, permissions } = await this.userService.login({ username, password, role })
 
+        const schoolEntity = (user as any)?.school
+        const school = schoolEntity
+            ? { id: schoolEntity.id, name: schoolEntity.name, code: schoolEntity.code }
+            : null
+
         return response
             .cookie('accessToken', token, {
                 httpOnly: true,
@@ -61,6 +66,7 @@ export class AuthenticationController {
                 token,
                 user: {
                     ...new UserDTO({ ...user, isOnline: true, lastLogin: new Date() }),
+                    school,
                     roles,
                     role: roles[0] || null,
                     permissions
@@ -86,6 +92,11 @@ export class AuthenticationController {
             role: account.role
         })
 
+        const schoolEntityDemo = (user as any)?.school
+        const schoolDemo = schoolEntityDemo
+            ? { id: schoolEntityDemo.id, name: schoolEntityDemo.name, code: schoolEntityDemo.code }
+            : null
+
         return response
             .cookie('accessToken', token, {
                 httpOnly: true,
@@ -97,6 +108,7 @@ export class AuthenticationController {
                 token,
                 user: {
                     ...new UserDTO({ ...user, isOnline: true, lastLogin: new Date() }),
+                    school: schoolDemo,
                     roles,
                     role: roles[0] || null,
                     permissions
