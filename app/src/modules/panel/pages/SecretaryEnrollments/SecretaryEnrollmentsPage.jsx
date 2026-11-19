@@ -43,14 +43,15 @@ const statusTone = (status) => ({
 }[status] || 'muted')
 
 const exportSpreadsheet = (rows) => {
-    const headers = ['Expediente', 'Estudiante', 'Grado', 'Documentos', 'Estado', 'Solicitada']
+    const headers = ['Expediente', 'Estudiante', 'Grado', 'Acudiente', 'Documentos', 'Pago matrícula', 'Estado']
     const body = rows.map((item) => [
         item.fileNumber || '',
         item.studentName || '',
         item.grade || '',
-        `${item.uploadedDocuments ?? 0}/${item.requiredDocuments ?? 0}`,
-        deriveStatePill(item).label,
-        formatDate(item.requestedAt)
+        item.guardianName || '',
+        deriveDocumentPill(item).label,
+        'Pendiente',
+        deriveStatePill(item).label
     ])
     const cell = (value) => `<Cell><Data ss:Type="String">${String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;')}</Data></Cell>`
     const sheet = `<?xml version="1.0"?>
@@ -82,6 +83,7 @@ const SecretaryEnrollmentsPage = () => {
     const [search, setSearch] = useState('')
     const [gradeFilter, setGradeFilter] = useState('all')
     const [stateFilter, setStateFilter] = useState('all')
+    const [payFilter, setPayFilter] = useState('all')
     const [page, setPage] = useState(0)
     const [detail, setDetail] = useState(null)
     const [detailLoading, setDetailLoading] = useState(false)
@@ -120,9 +122,11 @@ const SecretaryEnrollmentsPage = () => {
         const matchSearch = !normalized
             || String(item.studentName || '').toLocaleLowerCase('es').includes(normalized)
             || String(item.fileNumber || '').toLocaleLowerCase('es').includes(normalized)
+            || String(item.studentDocumentNumber || '').toLocaleLowerCase('es').includes(normalized)
         const matchGrade = gradeFilter === 'all' || item.grade === gradeFilter
-        const matchState = stateFilter === 'all' || deriveStatePill(item).tone === (stateFilter === 'incomplete' ? 'red' : 'blue')
-        return matchSearch && matchGrade && matchState
+        const matchState = stateFilter === 'all' || deriveStatePill(item).label === stateFilter
+        const matchPay = payFilter === 'all' || payFilter === 'pending'
+        return matchSearch && matchGrade && matchState && matchPay
     })
     const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
     const currentPage = Math.min(page, totalPages - 1)
@@ -148,17 +152,14 @@ const SecretaryEnrollmentsPage = () => {
         <section className='se-page'>
             <header className='se-header'>
                 <div className='se-title-block'>
-                    <span className='se-eyebrow'>GESTIÓN DE MATRÍCULAS</span>
-                    <h1>Matrículas</h1>
+                    <h1>Gestión de matrículas</h1>
                     <p className='se-subtitle'>{queue.length} expedientes · Año lectivo vigente</p>
                 </div>
                 <div className='se-actions'>
-                    <button type='button' className='se-btn se-btn-ghost' onClick={() => exportSpreadsheet(filtered)} disabled={filtered.length === 0}>
-                        <span className='material-symbols-rounded' aria-hidden='true'>download</span>
+                    <button type='button' className='se-btn se-btn-outline' onClick={() => exportSpreadsheet(filtered)} disabled={filtered.length === 0}>
                         Exportar Excel
                     </button>
                     <button type='button' className='se-btn se-btn-primary' onClick={() => setShowWizard(true)} disabled={!schoolCode}>
-                        <span className='material-symbols-rounded' aria-hidden='true'>add_circle</span>
                         Nueva matrícula
                     </button>
                 </div>
@@ -178,7 +179,7 @@ const SecretaryEnrollmentsPage = () => {
                         type='text'
                         value={search}
                         onChange={(event) => { setSearch(event.target.value); setPage(0) }}
-                        placeholder='Buscar por nombre o expediente…'
+                        placeholder='Buscar por nombre, documento o expediente…'
                         aria-label='Buscar expediente'
                     />
                 </label>
@@ -191,13 +192,18 @@ const SecretaryEnrollmentsPage = () => {
                 <label className='se-filter'>
                     <select value={stateFilter} onChange={(event) => { setStateFilter(event.target.value); setPage(0) }} aria-label='Filtrar por estado'>
                         <option value='all'>Estado: Todos</option>
-                        <option value='review'>En revisión</option>
-                        <option value='incomplete'>Documentos incompletos</option>
+                        <option value='Pendiente de pago'>Pendiente de pago</option>
+                        <option value='En revisión'>En revisión</option>
+                        <option value='Documentos incompletos'>Documentos incompletos</option>
                     </select>
                 </label>
-                <button type='button' className='se-btn se-btn-ghost se-btn-small' onClick={loadQueue} disabled={loading}>
-                    {loading ? 'Cargando…' : 'Actualizar'}
-                </button>
+                <label className='se-filter'>
+                    <select value={payFilter} onChange={(event) => { setPayFilter(event.target.value); setPage(0) }} aria-label='Filtrar por pago'>
+                        <option value='all'>Pago: Todos</option>
+                        <option value='pending'>Pendiente</option>
+                        <option value='paid'>Pagada</option>
+                    </select>
+                </label>
             </div>
 
             <section className='se-card'>
@@ -217,7 +223,6 @@ const SecretaryEnrollmentsPage = () => {
                                             <th scope='col'>Documentos</th>
                                             <th scope='col'>Pago matrícula</th>
                                             <th scope='col'>Estado</th>
-                                            <th scope='col'>Solicitada</th>
                                             <th scope='col'>Acciones</th>
                                         </tr>
                                     </thead>
@@ -237,7 +242,6 @@ const SecretaryEnrollmentsPage = () => {
                                                     <td><span className={`se-pill se-pill-${docPill.tone}`}>{docPill.label}</span></td>
                                                     <td><span className='se-pill se-pill-amber'>Pendiente</span></td>
                                                     <td><span className={`se-pill se-pill-${statePill.tone}`}>{statePill.label}</span></td>
-                                                    <td>{formatDate(item.requestedAt)}</td>
                                                     <td>
                                                         <div className='se-action-buttons'>
                                                             <button type='button' className='se-icon-btn' aria-label={`Ver expediente ${item.fileNumber}`} onClick={() => openDetail(item)}>
