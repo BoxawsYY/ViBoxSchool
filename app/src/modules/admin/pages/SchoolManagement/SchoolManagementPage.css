@@ -322,7 +322,7 @@
 
 .lx-p-school-management-fields {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 12px;
 }
 
@@ -479,6 +479,10 @@
 
     .lx-p-school-management-header h1 {
         font-size: var(--lx-font-size-h1);
+    }
+
+    .lx-p-school-management-fields {
+        grid-template-columns: 1fr;
     }
 
     .lx-p-school-management-filters {
