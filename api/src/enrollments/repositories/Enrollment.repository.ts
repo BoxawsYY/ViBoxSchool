@@ -35,9 +35,97 @@ export class EnrollmentRepository extends BaseRepository<EnrollmentDraft> {
         super(EnrollmentDraft)
     }
 
+    async findReviewQueue(schoolId: string) {
+        const result = await this.db.query(`
+            SELECT e."id" AS "enrollmentId", e."fileNumber", e."requestedAt",
+                st."id" AS "studentId", st."name" AS "studentName", g."name" AS "grade",
+                (SELECT COUNT(DISTINCT ed."documentTypeId")::INTEGER FROM "EnrollmentDocuments" ed
+                    WHERE ed."enrollmentId" = e."id" AND ed."isDeleted" = FALSE) AS "uploadedDocuments",
+                (SELECT COUNT(*)::INTEGER FROM "GradeDocumentTypes" gdt
+                    WHERE gdt."schoolId" = e."schoolId" AND gdt."gradeId" = g."id"
+                        AND gdt."isRequired" = TRUE AND gdt."status" = 'active'
+                        AND gdt."isActive" = TRUE AND gdt."isDeleted" = FALSE) AS "requiredDocuments",
+                EXISTS (SELECT 1 FROM "EnrollmentDocuments" ed
+                    WHERE ed."enrollmentId" = e."id" AND ed."version" > 1 AND ed."isDeleted" = FALSE) AS "hasCorrections"
+            FROM "Enrollments" e
+            JOIN "Students" st ON st."id" = e."studentId"
+            JOIN "GradePeriods" gp ON gp."id" = e."gradePeriodId"
+            JOIN "Grades" g ON g."id" = gp."gradeId"
+            WHERE e."schoolId" = $1 AND e."isDeleted" = FALSE
+                AND st."isDeleted" = FALSE
+                AND EXISTS (SELECT 1 FROM "EnrollmentDocuments" ed
+                    WHERE ed."enrollmentId" = e."id" AND ed."status" IN ('pending', 'rejected')
+                        AND ed."isDeleted" = FALSE)
+            ORDER BY e."requestedAt" ASC, st."name" ASC
+        `, [schoolId])
+        return result.rows
+    }
+
+    async findEnrollmentReview(schoolId: string, enrollmentId: string) {
+        const enrollmentResult = await this.db.query(`
+            SELECT e."id" AS "enrollmentId", e."fileNumber", e."requestedAt", e."periodId", e."status" AS "enrollmentStatus",
+                st."id" AS "studentId", st."name" AS "studentName", st."documentType", st."documentNumber",
+                g."id" AS "gradeId", g."name" AS "grade", ep."academicYear"
+            FROM "Enrollments" e
+            JOIN "Students" st ON st."id" = e."studentId"
+            JOIN "GradePeriods" gp ON gp."id" = e."gradePeriodId"
+            JOIN "Grades" g ON g."id" = gp."gradeId"
+            JOIN "EnrollmentPeriods" ep ON ep."id" = e."periodId"
+            WHERE e."id" = $1 AND e."schoolId" = $2 AND e."isDeleted" = FALSE
+            LIMIT 1
+        `, [enrollmentId, schoolId])
+        const enrollment = enrollmentResult.rows[0]
+        if (!enrollment) return null
+
+        const documentsResult = await this.db.query(`
+            SELECT dt."id" AS "documentTypeId", dt."name", latest."id" AS "documentId",
+                COALESCE(latest."status", 'missing') AS "status", latest."observation",
+                latest."version", latest."fileName", latest."mimeType", latest."sizeBytes",
+                latest."storagePath", latest."createdAt" AS "uploadedAt"
+            FROM "GradeDocumentTypes" gdt
+            JOIN "DocumentTypes" dt ON dt."id" = gdt."documentTypeId"
+            JOIN "GradePeriods" gp ON gp."gradeId" = gdt."gradeId" AND gp."periodId" = $3
+                AND gp."schoolId" = $2 AND gp."isDeleted" = FALSE
+            LEFT JOIN LATERAL (
+                SELECT ed."id", ed."status", ed."observation", ed."version", ed."fileName",
+                    ed."mimeType", ed."sizeBytes", ed."storagePath", ed."createdAt"
+                FROM "EnrollmentDocuments" ed
+                WHERE ed."enrollmentId" = $1 AND ed."documentTypeId" = dt."id" AND ed."isDeleted" = FALSE
+                ORDER BY ed."version" DESC, ed."createdAt" DESC
+                LIMIT 1
+            ) latest ON TRUE
+            WHERE gdt."schoolId" = $2 AND gdt."gradeId" = $4 AND gdt."isRequired" = TRUE
+                AND gdt."status" = 'active' AND gdt."isActive" = TRUE AND gdt."isDeleted" = FALSE
+                AND dt."status" = 'active' AND dt."isActive" = TRUE AND dt."isDeleted" = FALSE
+            ORDER BY dt."name" ASC
+        `, [enrollmentId, schoolId, enrollment.periodId, enrollment.gradeId])
+        return { enrollment, documents: documentsResult.rows }
+    }
+
+    async reviewEnrollmentDocument(schoolId: string, documentId: string, decision: 'approved' | 'rejected', observation: string | null, reviewerId?: string) {
+        const result = await this.db.query(`
+            UPDATE "EnrollmentDocuments" ed
+            SET "status" = $3, "observation" = $4, "reviewedAt" = NOW(),
+                "reviewedById" = $5, "updatedAt" = NOW()
+            FROM "Enrollments" e
+            WHERE ed."id" = $1 AND ed."enrollmentId" = e."id"
+                AND ed."schoolId" = $2 AND e."schoolId" = $2 AND ed."isDeleted" = FALSE
+            RETURNING ed."id", ed."status", ed."observation", ed."reviewedAt"
+        `, [documentId, schoolId, decision, observation, reviewerId || null])
+        return result.rows[0] || null
+    }
+
     async createDraft(input: EnrollmentDraftInput) {
         const id = uuidv4()
         return this.db.transaction(async (client) => {
+            const feeResult = await client.query(`
+                SELECT "enrollmentFee" FROM "GradePeriods"
+                WHERE "id" = $1 AND "schoolId" = $2 AND "periodId" = $3
+                    AND "isActive" = TRUE AND "isDeleted" = FALSE
+                FOR SHARE
+            `, [input.gradePeriodId, input.schoolId, input.periodId])
+            if (!feeResult.rows[0]) throw new NotFoundError('No se encontró el valor de matrícula del grado')
+            const agreedFee = feeResult.rows[0].enrollmentFee
             await client.query(`
                 DELETE FROM "EnrollmentDraftDocuments"
                 WHERE "draftId" IN (
@@ -52,9 +140,9 @@ export class EnrollmentRepository extends BaseRepository<EnrollmentDraft> {
             const result = await client.query(`
                 INSERT INTO "EnrollmentDrafts"
                     ("id", "schoolId", "gradePeriodId", "periodId", "studentData", "guardianData",
-                     "accessTokenHash", "expiresAt", "status", "isActive", "isDeleted")
-                VALUES ($1, $2, $3, $4, $5::jsonb, $6::jsonb, $7, $8, 'draft', TRUE, FALSE)
-                RETURNING "id", "expiresAt", "status"
+                     "accessTokenHash", "agreedFee", "expiresAt", "status", "isActive", "isDeleted")
+                VALUES ($1, $2, $3, $4, $5::jsonb, $6::jsonb, $7, $8, $9, 'draft', TRUE, FALSE)
+                RETURNING "id", "expiresAt", "status", "agreedFee"
             `, [
                 id,
                 input.schoolId,
@@ -63,6 +151,7 @@ export class EnrollmentRepository extends BaseRepository<EnrollmentDraft> {
                 JSON.stringify(input.studentData),
                 JSON.stringify(input.guardianData),
                 input.accessTokenHash,
+                agreedFee,
                 input.expiresAt
             ])
             return result.rows[0]
@@ -75,7 +164,7 @@ export class EnrollmentRepository extends BaseRepository<EnrollmentDraft> {
             FROM "Schools" s
             JOIN "EnrollmentPeriods" ep ON ep."schoolId" = s."id"
             WHERE s."code" = $1 AND s."status" = 'active'
-                AND s."isPartner" = TRUE AND s."isActive" = TRUE AND s."isDeleted" = FALSE
+                AND s."isActive" = TRUE AND s."isDeleted" = FALSE
                 AND ep."status" = 'open' AND ep."isActive" = TRUE AND ep."isDeleted" = FALSE
                 AND ep."startDate"::date <= CURRENT_DATE AND ep."endDate"::date >= CURRENT_DATE
             ORDER BY ep."academicYear" DESC
@@ -186,7 +275,7 @@ export class EnrollmentRepository extends BaseRepository<EnrollmentDraft> {
             const draftResult = await client.query(`
                 SELECT d."id", d."schoolId", d."gradePeriodId", d."periodId",
                     d."studentData", d."guardianData", s."code", ep."academicYear",
-                    gp."enrollmentFee", g."id" AS "gradeId"
+                    COALESCE(d."agreedFee", gp."enrollmentFee") AS "agreedFee", g."id" AS "gradeId"
                 FROM "EnrollmentDrafts" d
                 JOIN "Schools" s ON s."id" = d."schoolId"
                 JOIN "GradePeriods" gp ON gp."id" = d."gradePeriodId"
@@ -350,7 +439,7 @@ export class EnrollmentRepository extends BaseRepository<EnrollmentDraft> {
                 draft.gradePeriodId,
                 draft.periodId,
                 now,
-                draft.enrollmentFee,
+                draft.agreedFee,
                 student.shift
             ])
 
@@ -381,7 +470,7 @@ export class EnrollmentRepository extends BaseRepository<EnrollmentDraft> {
                 SET "status" = 'submitted', "isActive" = FALSE, "updatedAt" = NOW()
                 WHERE "id" = $1
             `, [draft.id])
-            return { id: enrollmentId, fileNumber, status: 'pending', username, requestedAt: now }
+            return { id: enrollmentId, fileNumber, status: 'pending', username, requestedAt: now, agreedFee: draft.agreedFee }
         })
     }
 }
