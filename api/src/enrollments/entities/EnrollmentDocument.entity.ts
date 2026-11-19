@@ -36,6 +36,9 @@ export class EnrollmentDocument {
     @Column({ type: 'string', nullable: false, default: 'pending' })
     status: string
 
+    @Column({ type: 'text', nullable: true })
+    observation: string
+
     @Column({ type: 'date', nullable: true })
     reviewedAt: Date
 

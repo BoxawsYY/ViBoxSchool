@@ -19,6 +19,15 @@ export class EnrollmentPeriod {
     @Column({ type: 'string', nullable: false, default: 'open' })
     status: string
 
+    @Column({ type: 'decimal', nullable: true })
+    lateFeePercentage: string
+
+    @Column({ type: 'number', nullable: true })
+    lateFeeDay: number
+
+    @Column({ type: 'boolean', nullable: true })
+    applyLateFee: boolean
+
     @ManyToOne(() => School, { joinColumn: 'schoolId' })
     school: Partial<School>
 

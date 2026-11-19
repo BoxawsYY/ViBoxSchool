@@ -17,6 +17,9 @@ export class EnrollmentDraft {
     @Column({ type: 'string', nullable: false })
     accessTokenHash: string
 
+    @Column({ type: 'decimal', nullable: true })
+    agreedFee: string
+
     @Column({ type: 'date', nullable: false })
     expiresAt: Date
 
