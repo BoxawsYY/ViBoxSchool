@@ -1,11 +1,17 @@
 import { useEffect, useState } from 'react';
 import './Switch.css';
 
-const Switch = ({ checked = false, action = async (setCheck) => { setCheck(isCheck => !isCheck) } }) => {
+const Switch = ({ checked = false, ariaLabel, action = async (setCheck) => { setCheck(isCheck => !isCheck) } }) => {
   const [isCheck, setCheck] = useState(checked);
 
   const handleAction = async (event) => {
     event.stopPropagation()
+    await action(setCheck)
+  }
+
+  const handleKeyDown = async (event) => {
+    if (event.key !== 'Enter' && event.key !== ' ') return
+    event.preventDefault()
     await action(setCheck)
   }
 
@@ -17,6 +23,11 @@ const Switch = ({ checked = false, action = async (setCheck) => { setCheck(isChe
     <div
       className={`lx-c-switch ${isCheck ? 'active' : ''}`}
       onClick={handleAction}
+      onKeyDown={handleKeyDown}
+      role='switch'
+      aria-checked={isCheck}
+      aria-label={ariaLabel}
+      tabIndex={0}
     >
       <div className='lx-c-switch-toggle'>
         <span>
