@@ -115,7 +115,8 @@ const EnrollmentWizardPage = () => {
     const selectedPeriod = availablePeriods.find((period) => period.id === gradePeriodId)
     const requiredDocuments = useMemo(
         () => (school?.requiredDocuments || []).filter(
-            (document) => document.isRequired && selectedPeriod && document.gradeId === selectedPeriod.gradeId
+            (document) => document.isRequired && selectedPeriod
+                && (document.gradeIds?.includes(selectedPeriod.gradeId) || document.gradeId === selectedPeriod.gradeId)
         ),
         [school, selectedPeriod]
     )
@@ -297,7 +298,7 @@ const EnrollmentWizardPage = () => {
                 </div>
                 <dl>
                     <div><dt>Grado</dt><dd>{selectedPeriod?.grade || 'Por seleccionar'}</dd></div>
-                    <div><dt>Valor de matrícula</dt><dd>{formatCurrency(selectedPeriod?.enrollmentFee)}</dd></div>
+                    <div><dt>Valor de matrícula</dt><dd>{formatCurrency(draft?.agreedFee ?? selectedPeriod?.enrollmentFee)}</dd></div>
                     <div><dt>Pensión mensual</dt><dd>{formatCurrency(selectedPeriod?.tuitionFee)}</dd></div>
                     <div><dt>Cupos disponibles</dt><dd className='lx-enrollment-seats'>{selectedPeriod?.availableSeats || 0}</dd></div>
                 </dl>
@@ -601,7 +602,7 @@ const EnrollmentWizardPage = () => {
                                     <dl>
                                         <div><dt>Asociado a</dt><dd>{school.name}</dd></div>
                                         <div><dt>Grado</dt><dd>{selectedPeriod?.grade} · Jornada {student.shift === 'morning' ? 'mañana' : 'tarde'}</dd></div>
-                                        <div><dt>Matrícula</dt><dd>{formatCurrency(selectedPeriod?.enrollmentFee)}</dd></div>
+                                        <div><dt>Matrícula</dt><dd>{formatCurrency(enrollment?.agreedFee ?? draft?.agreedFee ?? selectedPeriod?.enrollmentFee)}</dd></div>
                                     </dl>
                                 </section>
                                 <section className='lx-enrollment-side-card lx-enrollment-next-steps'>
