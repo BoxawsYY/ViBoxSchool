@@ -157,7 +157,7 @@ export class SchoolRepository extends BaseRepository<School> {
         const periodResult = await this.db.query(`
             SELECT "id", "academicYear", "startDate"::date::text AS "startDate",
                 "endDate"::date::text AS "endDate", "status", "lateFeePercentage",
-                "lateFeeDay", "applyLateFee"
+                "lateFeeDay", "applyLateFee", "pensionStartMonth", "pensionEndMonth"
             FROM "EnrollmentPeriods"
             WHERE "schoolId" = $1 AND "isActive" = TRUE AND "isDeleted" = FALSE
             ORDER BY "academicYear" DESC, "createdAt" DESC
@@ -193,7 +193,7 @@ export class SchoolRepository extends BaseRepository<School> {
     }
 
     async saveAcademicSettings(schoolId: string, input: {
-        enrollmentPeriod: { startDate: string, endDate: string, lateFeePercentage: number, lateFeeDay: number, applyLateFee: boolean },
+        enrollmentPeriod: { startDate: string, endDate: string, lateFeePercentage: number, lateFeeDay: number, applyLateFee: boolean, pensionStartMonth: number, pensionEndMonth: number },
         gradePeriods: Array<{ gradeId?: string, name: string, maxCapacity: number, enrollmentFee: number, tuitionFee: number, billingFrequency: string }>
     }) {
         await this.db.transaction(async client => {
@@ -208,20 +208,23 @@ export class SchoolRepository extends BaseRepository<School> {
                 await client.query(`
                     UPDATE "EnrollmentPeriods"
                     SET "academicYear" = $2, "startDate" = $3, "endDate" = $4,
-                        "lateFeePercentage" = $5, "lateFeeDay" = $6, "applyLateFee" = $7, "status" = 'open', "updatedAt" = NOW()
-                    WHERE "id" = $1 AND "schoolId" = $8
+                        "lateFeePercentage" = $5, "lateFeeDay" = $6, "applyLateFee" = $7,
+                        "pensionStartMonth" = $8, "pensionEndMonth" = $9, "status" = 'open', "updatedAt" = NOW()
+                    WHERE "id" = $1 AND "schoolId" = $10
                 `, [period.id, year, input.enrollmentPeriod.startDate, input.enrollmentPeriod.endDate,
                     input.enrollmentPeriod.lateFeePercentage, input.enrollmentPeriod.lateFeeDay,
-                    input.enrollmentPeriod.applyLateFee, schoolId])
+                    input.enrollmentPeriod.applyLateFee, input.enrollmentPeriod.pensionStartMonth,
+                    input.enrollmentPeriod.pensionEndMonth, schoolId])
             } else {
                 const id = uuidv4()
                 await client.query(`
                     INSERT INTO "EnrollmentPeriods"
                         ("id", "schoolId", "academicYear", "startDate", "endDate", "status",
-                         "lateFeePercentage", "lateFeeDay", "applyLateFee", "isActive", "isDeleted")
-                    VALUES ($1, $2, $3, $4, $5, 'open', $6, $7, $8, TRUE, FALSE)
+                         "lateFeePercentage", "lateFeeDay", "applyLateFee", "pensionStartMonth", "pensionEndMonth", "isActive", "isDeleted")
+                    VALUES ($1, $2, $3, $4, $5, 'open', $6, $7, $8, $9, $10, TRUE, FALSE)
                 `, [id, schoolId, year, input.enrollmentPeriod.startDate, input.enrollmentPeriod.endDate,
-                    input.enrollmentPeriod.lateFeePercentage, input.enrollmentPeriod.lateFeeDay, input.enrollmentPeriod.applyLateFee])
+                    input.enrollmentPeriod.lateFeePercentage, input.enrollmentPeriod.lateFeeDay, input.enrollmentPeriod.applyLateFee,
+                    input.enrollmentPeriod.pensionStartMonth, input.enrollmentPeriod.pensionEndMonth])
                 period = { id, academicYear: year }
             }
 
