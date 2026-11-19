@@ -5,6 +5,7 @@ import { Inject, Service } from '../../core/decorators/decorators.js'
 import { InvalidFormatError } from '../../core/errors/InvalidFormat.error.js'
 import { NotFoundError } from '../../core/errors/NotFound.error.js'
 import EnrollmentRepository from '../repositories/Enrollment.repository.js'
+import NotificationEmitterService from '../../notifications/services/NotificationEmitter.service.js'
 
 const REQUIRED_STUDENT_FIELDS = ['name', 'documentType', 'documentNumber']
 const REQUIRED_GUARDIAN_FIELDS = ['name', 'documentType', 'documentNumber', 'email', 'phone', 'relationship']
@@ -48,7 +49,9 @@ const getStorageClient = () => {
 export class EnrollmentService {
     constructor(
         @Inject(EnrollmentRepository)
-        private enrollmentRepository: EnrollmentRepository
+        private enrollmentRepository: EnrollmentRepository,
+        @Inject(NotificationEmitterService)
+        private notificationEmitter: NotificationEmitterService
     ) { }
 
     async createDraft(input: Record<string, any>) {
@@ -281,6 +284,18 @@ export class EnrollmentService {
             passwordHash
         )
         if (!enrollment) throw new NotFoundError('El borrador no existe o expiró')
+
+        try {
+            await this.notificationEmitter.newEnrollmentRequest({
+                schoolId: enrollment.schoolId,
+                enrollmentId: enrollment.id,
+                fileNumber: enrollment.fileNumber,
+                studentName: enrollment.studentName
+            })
+        } catch (error) {
+            console.error('[Enrollment] No se pudo emitir el aviso de nueva solicitud', error)
+        }
+
         return { ...enrollment, temporaryPassword: password }
     }
 }

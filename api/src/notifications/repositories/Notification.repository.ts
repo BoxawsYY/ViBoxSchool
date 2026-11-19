@@ -84,6 +84,41 @@ export class NotificationRepository extends BaseRepository<Notification> {
         return result.rowCount ?? 0
     }
 
+    async listSchoolStaffIds(schoolId: string): Promise<string[]> {
+        const rows = await this.raw(`
+            SELECT DISTINCT u."id"
+            FROM "Users" u
+            JOIN "UsersRoles" ur ON ur."userId" = u."id"
+            JOIN "Roles" r ON r."id" = ur."roleId"
+            WHERE u."schoolId" = $1
+                AND r."name" IN ('Rector', 'Secretary')
+                AND u."isActive" = TRUE AND u."isDeleted" = FALSE
+                AND r."isActive" = TRUE AND r."isDeleted" = FALSE
+        `, [schoolId])
+
+        return rows.map(row => row.id)
+    }
+
+    async createMany(entries: Array<Record<string, any>>): Promise<number> {
+        if (entries.length === 0) return 0
+
+        const keys = Object.keys(entries[0])
+        const columns = keys.map(key => `"${key}"`).join(', ')
+        const params: any[] = []
+        const values = entries.map((entry) => {
+            const start = params.length
+            keys.forEach((key) => params.push(entry[key]))
+            return `(${keys.map((_, i) => `$${start + i + 1}`).join(', ')})`
+        })
+
+        const result = await this.db.query(`
+            INSERT INTO "Notifications" (${columns})
+            VALUES ${values.join(', ')}
+        `, params)
+
+        return result.rowCount ?? 0
+    }
+
 }
 
 export default NotificationRepository

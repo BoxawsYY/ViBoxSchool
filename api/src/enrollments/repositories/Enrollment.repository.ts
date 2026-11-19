@@ -381,7 +381,7 @@ export class EnrollmentRepository extends BaseRepository<EnrollmentDraft> {
                 SET "status" = 'submitted', "isActive" = FALSE, "updatedAt" = NOW()
                 WHERE "id" = $1
             `, [draft.id])
-            return { id: enrollmentId, fileNumber, status: 'pending', username, requestedAt: now }
+            return { id: enrollmentId, fileNumber, status: 'pending', username, requestedAt: now, schoolId: draft.schoolId, studentName: student?.name ?? null }
         })
     }
 }
