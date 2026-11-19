@@ -4,7 +4,9 @@ import { InvalidFormatError } from '../../core/errors/InvalidFormat.error.js'
 import Validator from '../../core/utils/Validator.js'
 import NotificationService from '../services/Notification.service.js'
 
-const MANAGE_ROLES = [ROLES.RECTOR, ROLES.SECRETARY]
+// Notifications are scoped to the authenticated user; Guardians need access
+// to their own unread count and messages as well as school staff.
+const NOTIFICATION_ROLES = [ROLES.RECTOR, ROLES.SECRETARY, ROLES.GUARDIAN]
 
 const DEFAULT_LIMIT = 10
 const MAX_LIMIT = 50
@@ -18,13 +20,13 @@ export class NotificationController {
     ) { }
 
     @Get('/unread-count')
-    @Roles(MANAGE_ROLES)
+    @Roles(NOTIFICATION_ROLES)
     async unreadCount(request, response) {
         return response.status(200).json(await this.notificationService.unreadCount(request.user?.id))
     }
 
     @Get('/')
-    @Roles(MANAGE_ROLES)
+    @Roles(NOTIFICATION_ROLES)
     async list(request, response) {
         const { isRead, limit, offset } = request.query || {}
 
@@ -46,13 +48,13 @@ export class NotificationController {
     }
 
     @Patch('/read-all')
-    @Roles(MANAGE_ROLES)
+    @Roles(NOTIFICATION_ROLES)
     async readAll(request, response) {
         return response.status(200).json(await this.notificationService.markAllRead(request.user?.id))
     }
 
     @Patch('/:id/read')
-    @Roles(MANAGE_ROLES)
+    @Roles(NOTIFICATION_ROLES)
     async markRead(request, response) {
         const { id } = request.params || {}
         Validator.required({ id }).isUUID({ id })
@@ -61,7 +63,7 @@ export class NotificationController {
     }
 
     @Patch('/:id/unread')
-    @Roles(MANAGE_ROLES)
+    @Roles(NOTIFICATION_ROLES)
     async markUnread(request, response) {
         const { id } = request.params || {}
         Validator.required({ id }).isUUID({ id })

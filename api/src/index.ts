@@ -22,6 +22,10 @@ import './enrollments/entities/EnrollmentDraft.entity.js'
 import './enrollments/entities/EnrollmentDraftDocument.entity.js'
 import './notifications/entities/Notification.entity.js'
 import './notifications/entities/NotificationSetting.entity.js'
+import './payments/entities/Payment.entity.js'
+import './payments/entities/PaymentItem.entity.js'
+import './payments/entities/Pension.entity.js'
+import './payments/entities/Receipt.entity.js'
 
 dotenv.config()
 

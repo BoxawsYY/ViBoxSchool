@@ -9,6 +9,8 @@ import DocumentVerificationPage from '../../rector/pages/DocumentVerification/Do
 import SchoolSettingsPage from '../../rector/pages/SchoolSettings/SchoolSettingsPage'
 import AcademicSettingsPage from '../../rector/pages/AcademicSettings/AcademicSettingsPage'
 import SecretaryEnrollmentsPage from '../pages/SecretaryEnrollments/SecretaryEnrollmentsPage'
+import PaymentPage from '../pages/Payments/PaymentPage'
+import CashPaymentPage from '../pages/Payments/CashPaymentPage'
 
 export const AUTHORITIES = {
   PANEL: {
@@ -131,6 +133,10 @@ const roleItem = (role, label, slug, icon, section = 'Gestión') => ({
         ? <SchoolSettingsPage />
       : role === 'Secretary' && slug === 'enrollments'
         ? <SecretaryEnrollmentsPage />
+      : role === 'Guardian' && slug === 'payments'
+        ? <PaymentPage />
+      : role === 'Secretary' && slug === 'cash-payment'
+        ? <CashPaymentPage />
         : <DevelopmentPage title={label} />,
   authorities: { roles: [role] },
   items: []

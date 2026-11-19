@@ -132,10 +132,14 @@ export default class Requester {
                 body: parsedBody
             }
 
-            // if (res.status === 401 || res.status === 403) {
-            //     Requester.clearToken()
-            //     location.href = '/auth'
-            // }
+            const authMessage = String(error.message).toLowerCase()
+            const tokenRejected = authMessage.includes('token')
+                || authMessage.includes('usuario está desautorizado')
+                || authMessage.includes('usuario ha sido eliminado')
+                || authMessage.includes('usuario ha sido desactivado')
+            if (res.status === 401 && tokenRejected && typeof window !== 'undefined') {
+                window.dispatchEvent(new CustomEvent('auth:unauthorized', { detail: { message: error.message } }))
+            }
 
             throw error
         }

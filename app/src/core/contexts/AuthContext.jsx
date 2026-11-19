@@ -181,6 +181,16 @@ export const AuthProvider = ({ children }) => {
     validateSession()
   }, [])
 
+  useEffect(() => {
+    const handleUnauthorized = () => {
+      localStorage.removeItem('session')
+      setSession(null)
+      Notify.notice('Tu sesión expiró. Inicia sesión nuevamente.', 'warning')
+    }
+    window.addEventListener('auth:unauthorized', handleUnauthorized)
+    return () => window.removeEventListener('auth:unauthorized', handleUnauthorized)
+  }, [])
+
   return (
     <AuthContext.Provider value={{ session, user, signIn, signInDemo, signOut, hasAuthorities }}>
       {children}

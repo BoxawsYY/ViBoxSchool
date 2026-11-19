@@ -8,9 +8,10 @@ const FREQUENCIES = [
   ['monthly', 'Mensual'], ['bimonthly', 'Bimestral'], ['quarterly', 'Trimestral'],
   ['semiannual', 'Semestral'], ['annual', 'Anual']
 ]
+const MONTHS = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
 const currentYear = new Date().getFullYear()
 const EMPTY_SETTINGS = {
-  enrollmentPeriod: { startDate: `${currentYear}-01-01`, endDate: `${currentYear}-12-31`, lateFeePercentage: 5, lateFeeDay: 5, applyLateFee: true },
+  enrollmentPeriod: { startDate: `${currentYear}-01-01`, endDate: `${currentYear}-12-31`, lateFeePercentage: 5, lateFeeDay: 5, applyLateFee: true, pensionStartMonth: 1, pensionEndMonth: 10 },
   gradePeriods: []
 }
 
@@ -140,6 +141,14 @@ const AcademicSettingsPage = () => {
             <label>Fecha de apertura<input name="startDate" type="date" value={String(settings.enrollmentPeriod.startDate || '').slice(0, 10)} onChange={updatePeriod} required /></label>
             <label>Fecha de cierre<input name="endDate" type="date" value={String(settings.enrollmentPeriod.endDate || '').slice(0, 10)} onChange={updatePeriod} required /></label>
             <span className={`lx-p-academic-period-status ${periodStatus === 'Abierto' ? 'is-open' : ''}`}>{periodStatus}</span>
+          </section>
+          <section className="lx-p-academic-card lx-p-academic-month-range">
+            <h2>Rango de pensiones</h2>
+            <p>Define los meses que tendrán cuotas de pensión este año lectivo.</p>
+            <div className="lx-p-academic-month-fields">
+              <label>Mes de inicio<select name="pensionStartMonth" value={settings.enrollmentPeriod.pensionStartMonth} onChange={updatePeriod}>{MONTHS.map((month, index) => <option key={month} value={index + 1}>{month}</option>)}</select></label>
+              <label>Mes de fin<select name="pensionEndMonth" value={settings.enrollmentPeriod.pensionEndMonth} onChange={updatePeriod}>{MONTHS.map((month, index) => <option key={month} value={index + 1} disabled={index + 1 < settings.enrollmentPeriod.pensionStartMonth}>{month}</option>)}</select></label>
+            </div>
           </section>
           <section className="lx-p-academic-card lx-p-academic-late-fee">
             <h2>Recargo por mora</h2>
