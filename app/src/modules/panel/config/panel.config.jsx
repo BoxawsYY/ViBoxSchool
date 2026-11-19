@@ -8,6 +8,8 @@ import NotificationsPage from '../pages/Notifications/NotificationsPage'
 import DocumentVerificationPage from '../../rector/pages/DocumentVerification/DocumentVerificationPage'
 import SchoolSettingsPage from '../../rector/pages/SchoolSettings/SchoolSettingsPage'
 import AcademicSettingsPage from '../../rector/pages/AcademicSettings/AcademicSettingsPage'
+import PaymentPage from '../pages/Payments/PaymentPage'
+import CashPaymentPage from '../pages/Payments/CashPaymentPage'
 
 export const AUTHORITIES = {
   PANEL: {
@@ -128,7 +130,11 @@ const roleItem = (role, label, slug, icon, section = 'Gestión') => ({
         ? <AcademicSettingsPage />
       : role === 'Rector' && slug === 'school-settings'
         ? <SchoolSettingsPage />
-        : <DevelopmentPage title={label} />,
+        : role === 'Guardian' && slug === 'payments'
+          ? <PaymentPage />
+        : role === 'Secretary' && slug === 'cash-payment'
+          ? <CashPaymentPage />
+          : <DevelopmentPage title={label} />,
   authorities: { roles: [role] },
   items: []
 })
