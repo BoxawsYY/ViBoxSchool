@@ -23,7 +23,7 @@
     grid-row: 2;
     overflow: visible;
     padding: 0;
-    background: #FFFFFF;
+    background: var(--lx-color-surface);
 }
 
 .lx-l-panel-sidebar-menu {
