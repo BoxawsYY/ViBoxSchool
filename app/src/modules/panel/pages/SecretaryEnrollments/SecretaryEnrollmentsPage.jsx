@@ -257,8 +257,8 @@ const SecretaryEnrollmentsPage = () => {
                             <div className='se-card-footer'>
                                 <span>Mostrando {from}–{to} de {filtered.length}</span>
                                 <div className='se-pagination'>
-                                    <button type='button' className='se-btn se-btn-ghost se-btn-small' onClick={() => setPage((current) => Math.max(0, current - 1))} disabled={currentPage === 0}>Anterior</button>
-                                    <button type='button' className='se-btn se-btn-ghost se-btn-small' onClick={() => setPage((current) => Math.min(totalPages - 1, current + 1))} disabled={currentPage >= totalPages - 1}>Siguiente</button>
+                                    <button type='button' className='se-btn' onClick={() => setPage((current) => Math.max(0, current - 1))} disabled={currentPage === 0}>Anterior</button>
+                                    <button type='button' className='se-btn' onClick={() => setPage((current) => Math.min(totalPages - 1, current + 1))} disabled={currentPage >= totalPages - 1}>Siguiente</button>
                                 </div>
                             </div>
                         </>
