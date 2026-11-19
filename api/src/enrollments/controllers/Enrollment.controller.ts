@@ -1,4 +1,5 @@
-import { Controller, Inject, Post, Public } from '../../core/decorators/decorators.js'
+import { Controller, Get, Inject, Patch, Post, Public, Roles } from '../../core/decorators/decorators.js'
+import { ROLES } from '../../auth/constants/authorities.js'
 import { InvalidFormatError } from '../../core/errors/InvalidFormat.error.js'
 import EnrollmentService from '../services/Enrollment.service.js'
 
@@ -8,6 +9,50 @@ export class EnrollmentController {
         @Inject(EnrollmentService)
         private enrollmentService: EnrollmentService
     ) { }
+
+    @Get('/review-queue')
+    @Roles([ROLES.RECTOR, ROLES.SECRETARY])
+    async findReviewQueue(request, response) {
+        const schoolId = request.user?.schoolId || request.user?.school?.id
+        if (!schoolId) throw new InvalidFormatError('El usuario no tiene un colegio asociado')
+        const enrollments = await this.enrollmentService.findReviewQueue(schoolId)
+        return response.status(200).json(enrollments)
+    }
+
+    @Get('/:enrollmentId/documents')
+    @Roles([ROLES.RECTOR, ROLES.SECRETARY])
+    async findEnrollmentReview(request, response) {
+        const schoolId = request.user?.schoolId || request.user?.school?.id
+        const { enrollmentId } = request.params || {}
+        if (!schoolId) throw new InvalidFormatError('El usuario no tiene un colegio asociado')
+        if (typeof enrollmentId !== 'string' || !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(enrollmentId)) {
+            throw new InvalidFormatError('enrollmentId debe ser un UUID válido')
+        }
+        const review = await this.enrollmentService.findEnrollmentReview(schoolId, enrollmentId)
+        return response.status(200).json(review)
+    }
+
+    @Patch('/documents/:documentId/review')
+    @Roles([ROLES.RECTOR, ROLES.SECRETARY])
+    async reviewDocument(request, response) {
+        const { documentId } = request.params || {}
+        const { decision, observation } = request.body || {}
+        if (typeof documentId !== 'string' || !/^[0-9a-f-]{36}$/i.test(documentId)) {
+            throw new InvalidFormatError('documentId debe ser un UUID válido')
+        }
+        if (!['approved', 'rejected'].includes(decision)) {
+            throw new InvalidFormatError('decision debe ser approved o rejected')
+        }
+        if (decision === 'rejected' && (typeof observation !== 'string' || !observation.trim())) {
+            throw new InvalidFormatError('La observación es obligatoria para rechazar')
+        }
+        const schoolId = request.user?.schoolId || request.user?.school?.id
+        if (!schoolId) throw new InvalidFormatError('El usuario no tiene un colegio asociado')
+        const result = await this.enrollmentService.reviewDocument(
+            schoolId, documentId, decision, decision === 'rejected' ? observation.trim() : null, request.user?.id
+        )
+        return response.status(200).json(result)
+    }
 
     @Post('/')
     @Public()

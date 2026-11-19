@@ -16,6 +16,7 @@ const INITIAL_FORM = {
     name: '',
     nit: '',
     city: '',
+    department: '',
     email: '',
     brandColor: BRAND_COLORS[0],
     isPartner: false
@@ -62,10 +63,16 @@ const SchoolManagementPage = () => {
         loadSchools()
     }, [loadSchools])
 
+    useEffect(() => {
+        if (!success) return undefined
+        const timeout = window.setTimeout(() => setSuccess(''), 4000)
+        return () => window.clearTimeout(timeout)
+    }, [success])
+
     const filteredSchools = useMemo(() => schools.filter((school) => {
         const query = search.trim().toLocaleLowerCase('es')
         const matchesSearch = !query
-            || `${school.name} ${school.city} ${school.nit}`.toLocaleLowerCase('es').includes(query)
+            || `${school.name} ${school.city} ${school.department || ''} ${school.nit}`.toLocaleLowerCase('es').includes(query)
         const matchesStatus = statusFilter === 'all' || school.status === statusFilter
         const matchesPartner = partnerFilter === 'all'
             || String(Boolean(school.isPartner)) === partnerFilter
@@ -88,6 +95,7 @@ const SchoolManagementPage = () => {
                 name: form.name.trim(),
                 nit: form.nit.trim(),
                 city: form.city.trim(),
+                department: form.department.trim(),
                 email: form.email.trim()
             }
             const saved = editingSchool
@@ -112,6 +120,7 @@ const SchoolManagementPage = () => {
             name: school.name || '',
             nit: school.nit || '',
             city: school.city || '',
+            department: school.department || '',
             email: school.email || '',
             brandColor: school.brandColor || INITIAL_FORM.brandColor,
             isPartner: Boolean(school.isPartner)
@@ -258,8 +267,9 @@ const SchoolManagementPage = () => {
                         <div className='lx-p-school-management-fields'>
                             <label>NIT<input name='nit' value={form.nit} onChange={updateForm} required maxLength='32' /></label>
                             <label>Ciudad<input name='city' value={form.city} onChange={updateForm} required maxLength='100' /></label>
+                            <label>Departamento<input name='department' value={form.department} onChange={updateForm} required maxLength='100' /></label>
                         </div>
-                        <label>Correo del rector<input name='email' type='email' value={form.email} onChange={updateForm} required maxLength='160' /></label>
+                        <label>Correo del colegio<input name='email' type='email' value={form.email} onChange={updateForm} required maxLength='160' /></label>
                         <fieldset className='lx-p-school-management-colors'>
                             <legend>Color institucional</legend>
                             <div>
@@ -302,7 +312,8 @@ const SchoolManagementPage = () => {
                         <div><dt>Nombre</dt><dd>{selectedSchool.name}</dd></div>
                         <div><dt>NIT</dt><dd>{selectedSchool.nit || 'No registrado'}</dd></div>
                         <div><dt>Ciudad</dt><dd>{selectedSchool.city || 'No registrada'}</dd></div>
-                        <div><dt>Correo del rector</dt><dd>{selectedSchool.email || 'No registrado'}</dd></div>
+                        <div><dt>Departamento</dt><dd>{selectedSchool.department || 'No registrado'}</dd></div>
+                        <div><dt>Correo del colegio</dt><dd>{selectedSchool.email || 'No registrado'}</dd></div>
                         <div><dt>Color institucional</dt><dd><span className='lx-p-school-management-detail-color' style={{ '--school-brand-color': selectedSchool.brandColor || 'var(--lx-color-accent)' }} />{selectedSchool.brandColor || 'Predeterminado'}</dd></div>
                         <div><dt>Estado</dt><dd>{STATUS_LABELS[selectedSchool.status] || selectedSchool.status || 'No registrado'}</dd></div>
                     </dl>

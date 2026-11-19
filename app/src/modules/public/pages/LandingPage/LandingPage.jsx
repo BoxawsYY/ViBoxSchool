@@ -81,7 +81,7 @@ const LandingPage = () => {
 
     const normalizedSearch = search.trim().toLocaleLowerCase('es')
     const featuredSchools = useMemo(
-        () => schools.filter((school) => school.isPartner !== false),
+        () => schools.filter((school) => school.isPartner === true && school.enrollmentOpen === true),
         [schools]
     )
     const visibleFeaturedSchools = useMemo(

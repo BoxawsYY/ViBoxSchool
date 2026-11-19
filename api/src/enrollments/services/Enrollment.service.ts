@@ -54,6 +54,32 @@ export class EnrollmentService {
         private notificationEmitter: NotificationEmitterService
     ) { }
 
+    async findReviewQueue(schoolId: string) {
+        return this.enrollmentRepository.findReviewQueue(schoolId)
+    }
+
+    async findEnrollmentReview(schoolId: string, enrollmentId: string) {
+        const review = await this.enrollmentRepository.findEnrollmentReview(schoolId, enrollmentId)
+        if (!review) throw new NotFoundError('El expediente no existe')
+        const storage = getStorageClient().storage.from(STORAGE_BUCKET)
+        const documents = await Promise.all(review.documents.map(async document => {
+            if (!document.storagePath) return { ...document, signedUrl: null }
+            const { data, error } = await storage.createSignedUrl(document.storagePath, 60 * 60)
+            if (error) {
+                console.error('[EnrollmentService] Could not sign document URL', { documentId: document.documentId, message: error.message })
+                return { ...document, signedUrl: null }
+            }
+            return { ...document, signedUrl: data.signedUrl }
+        }))
+        return { ...review, documents }
+    }
+
+    async reviewDocument(schoolId: string, id: string, decision: 'approved' | 'rejected', observation: string | null, reviewerId?: string) {
+        const document = await this.enrollmentRepository.reviewEnrollmentDocument(schoolId, id, decision, observation, reviewerId)
+        if (!document) throw new NotFoundError('El documento no existe en este colegio')
+        return document
+    }
+
     async createDraft(input: Record<string, any>) {
         const { schoolCode, gradePeriodId, student, guardian } = input || {}
         if (typeof schoolCode !== 'string' || !schoolCode.trim()) {

@@ -5,6 +5,9 @@ import SchoolManagementPage from '../../admin/pages/SchoolManagement/SchoolManag
 import GlobalUsersPage from '../../admin/pages/GlobalUsers/GlobalUsersPage'
 import DevelopmentPage from '../pages/Development/DevelopmentPage'
 import NotificationsPage from '../pages/Notifications/NotificationsPage'
+import DocumentVerificationPage from '../../rector/pages/DocumentVerification/DocumentVerificationPage'
+import SchoolSettingsPage from '../../rector/pages/SchoolSettings/SchoolSettingsPage'
+import AcademicSettingsPage from '../../rector/pages/AcademicSettings/AcademicSettingsPage'
 
 export const AUTHORITIES = {
   PANEL: {
@@ -119,7 +122,13 @@ const roleItem = (role, label, slug, icon, section = 'Gestión') => ({
   description: label,
   to: `/panel/${role.toLowerCase()}/${slug}`,
   path: `${role.toLowerCase()}/${slug}`,
-  element: <DevelopmentPage title={label} />,
+    element: role === 'Rector' && slug === 'document-verification'
+      ? <DocumentVerificationPage />
+      : role === 'Rector' && slug === 'academic-settings'
+        ? <AcademicSettingsPage />
+      : role === 'Rector' && slug === 'school-settings'
+        ? <SchoolSettingsPage />
+        : <DevelopmentPage title={label} />,
   authorities: { roles: [role] },
   items: []
 })
@@ -145,7 +154,8 @@ const roleDashboard = (role, label, icon = 'dashboard') => ({
 export const ROLE_MENUS = {
   Rector: [
     roleDashboard('Rector', 'Panel'),
-    roleItem('Rector', 'Parámetros del colegio', 'settings', 'tune', 'Administración'),
+    roleItem('Rector', 'Parámetros académicos', 'academic-settings', 'school', 'Administración'),
+    roleItem('Rector', 'Configuración del Colegio', 'school-settings', 'tune', 'Administración'),
     roleItem('Rector', 'Verificación de documentos', 'document-verification', 'verified_user'),
     roleItem('Rector', 'Reportes', 'reports', 'bar_chart'),
     roleNotifications('Rector')
